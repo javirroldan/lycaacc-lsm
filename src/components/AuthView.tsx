@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Loader2, LogIn, ShieldCheck } from "lucide-react"
-import { supabaseConfigurado } from "../lib/supabase"
+import { insforgeConfigurado } from "../lib/insforge"
 
 interface Props {
   onIniciarSesion: (usuario: string, password: string) => Promise<string | null>
@@ -22,11 +22,11 @@ export function AuthView({ onIniciarSesion, onEntrarComoVisitante }: Props) {
     setCargando(false)
   }
 
-  if (!supabaseConfigurado) {
+  if (!insforgeConfigurado) {
     return (
       <LoadingScreen
-        titulo="Falta la configuración de Supabase"
-        detalle="Definí VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY en el archivo .env"
+        titulo="Falta la configuración de InsForge"
+        detalle="Definí VITE_INSFORGE_URL y VITE_INSFORGE_ANON_KEY en el archivo .env"
       />
     )
   }

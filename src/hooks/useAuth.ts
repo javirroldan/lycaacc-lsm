@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from "react"
-import { supabase, fetchRol, usuarioAEmail, type Rol } from "../lib/supabase"
-import type { Session } from "@supabase/supabase-js"
+import { insforge, fetchRol, usuarioAEmail, type Rol } from "../lib/insforge"
+import type { UserSchema } from "@insforge/sdk"
 
 export function useAuth() {
-  const [session, setSession] = useState<Session | null>(null)
+  const [usuario, setUsuario] = useState<UserSchema | null>(null)
   const [rol, setRol] = useState<Rol>(null)
   const [loading, setLoading] = useState(true)
 
@@ -12,30 +12,42 @@ export function useAuth() {
   }, [])
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
-      if (data.session?.user.id) cargarRol(data.session.user.id)
+    insforge.auth.getCurrentUser().then(({ data }) => {
+      const user = data?.user ?? null
+      setUsuario(user)
+      if (user?.id) cargarRol(user.id)
       setLoading(false)
     })
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
-      setSession(s)
-      setRol(null)
-      if (s?.user.id) cargarRol(s.user.id)
+    const off = insforge.auth.onAuthStateChange(() => {
+      insforge.auth.getCurrentUser().then(({ data }) => {
+        const user = data?.user ?? null
+        setUsuario(user)
+        setRol(null)
+        if (user?.id) cargarRol(user.id)
+      })
     })
-    return () => sub.subscription.unsubscribe()
+    return off
   }, [cargarRol])
 
   const signIn = useCallback(async (usuario: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email: usuarioAEmail(usuario), password })
+    const { data, error } = await insforge.auth.signInWithPassword({
+      method: "password",
+      email: usuarioAEmail(usuario),
+      password,
+    })
+    if (data?.user) {
+      setUsuario(data.user)
+      cargarRol(data.user.id)
+    }
     return error?.message ?? null
-  }, [])
+  }, [cargarRol])
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut()
+    await insforge.auth.signOut()
   }, [])
 
-  return { session, rol, loading, signIn, signOut }
+  return { usuario, rol, loading, signIn, signOut }
 }
 
 export type UseAuth = ReturnType<typeof useAuth>

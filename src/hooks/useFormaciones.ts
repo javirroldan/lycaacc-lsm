@@ -1,8 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import { supabase } from "../lib/supabase"
+import type { SocketMessage } from "@insforge/sdk"
+import { insforge } from "../lib/insforge"
 import { calcularDias, ordenarPorCriticidad, semaforo } from "../lib/dates"
 import type { CamposEditables, Formacion, FormacionDB } from "../lib/types"
 import { addOp, getOps, removeOp } from "../lib/offline"
+
+const CANAL = "formaciones"
+const EVENTO_CAMBIO = "formacion:changed"
+const EVENTO_BORRADO = "formacion:deleted"
 
 function derivar(db: FormacionDB[]): Formacion[] {
   return ordenarPorCriticidad(
@@ -32,7 +37,7 @@ export function useFormaciones() {
     const ops = await getOps("formaciones")
     if (ops.length === 0) return
     for (const op of ops) {
-      const { error } = await supabase
+      const { error } = await insforge.database
         .from("formaciones")
         .update(op.campos)
         .eq("id", op.registroId)
@@ -44,12 +49,12 @@ export function useFormaciones() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const { data, error } = await supabase
+    const { data, error: err } = await insforge.database
       .from("formaciones")
       .select("*")
       .order("formacion")
-    if (error) {
-      setError(error.message)
+    if (err) {
+      setError(err.message)
     } else if (data) {
       setFormaciones(derivar(data as FormacionDB[]))
     }
@@ -68,34 +73,38 @@ export function useFormaciones() {
     window.addEventListener("online", onOnline)
     window.addEventListener("offline", onOffline)
 
-    const channel = supabase
-      .channel("realtime-formaciones")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "formaciones" },
-        (payload) => {
-          const nuevo = payload.new as FormacionDB | null
-          const viejo = payload.old as FormacionDB | null
-          setFormaciones((prev) => {
-            if (payload.eventType === "DELETE" || !nuevo) {
-              if (!viejo) return prev
-              return prev.filter((f) => f.id !== viejo.id)
-            }
-            const existe = prev.some((f) => f.id === nuevo.id)
-            const act = derivar([nuevo])
-            if (existe) {
-              return prev.map((f) => (f.id === nuevo.id ? act[0] : f))
-            }
-            return ordenarPorCriticidad([...prev, act[0]])
-          })
-        },
-      )
-      .subscribe()
+    const onCambio = (msg: SocketMessage) => {
+      const nuevo = msg as unknown as FormacionDB | null
+      if (!nuevo?.id) return
+      setFormaciones((prev) => {
+        const existe = prev.some((f) => f.id === nuevo.id)
+        const act = derivar([nuevo])
+        if (existe) {
+          return prev.map((f) => (f.id === nuevo.id ? act[0] : f))
+        }
+        return ordenarPorCriticidad([...prev, act[0]])
+      })
+    }
+
+    const onBorrado = (msg: SocketMessage) => {
+      const viejo = msg as unknown as FormacionDB | null
+      if (!viejo?.id) return
+      setFormaciones((prev) => prev.filter((f) => f.id !== viejo.id))
+    }
+
+    insforge.realtime.on(EVENTO_CAMBIO, onCambio)
+    insforge.realtime.on(EVENTO_BORRADO, onBorrado)
+    void insforge.realtime
+      .connect()
+      .then(() => insforge.realtime.subscribe(CANAL))
+      .catch((e) => console.error("Error al suscribirse a realtime de formaciones:", e))
 
     return () => {
       window.removeEventListener("online", onOnline)
       window.removeEventListener("offline", onOffline)
-      supabase.removeChannel(channel)
+      insforge.realtime.off(EVENTO_CAMBIO, onCambio)
+      insforge.realtime.off(EVENTO_BORRADO, onBorrado)
+      insforge.realtime.unsubscribe(CANAL)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

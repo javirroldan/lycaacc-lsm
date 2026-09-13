@@ -1,10 +1,15 @@
-import { createClient } from "@supabase/supabase-js"
+import { createAdminClient } from "@insforge/sdk"
 import fs from "node:fs/promises"
 import { readFileSync } from "node:fs"
 
 function leerEnv(ruta) {
   const vars = {}
-  const texto = readFileSync(ruta, "utf8")
+  let texto
+  try {
+    texto = readFileSync(ruta, "utf8")
+  } catch {
+    return vars
+  }
   for (const linea of texto.split("\n")) {
     const m = linea.match(/^([A-Z_]+)="?([^"]*)"?$/)
     if (m) vars[m[1]] = m[2]
@@ -18,15 +23,15 @@ const env = {
   ...process.env,
 }
 
-const url = env.VITE_SUPABASE_URL
-const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY
+const url = env.VITE_INSFORGE_URL ?? env.INSFORGE_URL
+const apiKey = env.INSFORGE_API_KEY
 
-if (!url || !serviceKey) {
-  console.error("Falta VITE_SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en .env / .env.local")
+if (!url || !apiKey) {
+  console.error("Falta VITE_INSFORGE_URL (o INSFORGE_URL) e INSFORGE_API_KEY en .env / .env.local")
   process.exit(1)
 }
 
-const supabase = createClient(url, serviceKey, { auth: { persistSession: false } })
+const insforge = createAdminClient({ baseUrl: url, apiKey })
 
 const backup = JSON.parse(await fs.readFile("backuotrenes.json", "utf8"))
 
@@ -36,7 +41,7 @@ function toIso(fecha) {
   return `${yyyy}-${mm}-${dd}`
 }
 
-const { data: antes, error: errAntes } = await supabase
+const { data: antes, error: errAntes } = await insforge.database
   .from("formaciones")
   .select("formacion, anteultima, ultima, estado")
   .order("formacion")
@@ -62,7 +67,7 @@ for (const f of backup) {
 
   if (coincide) continue
 
-  const { error } = await supabase
+  const { error } = await insforge.database
     .from("formaciones")
     .update({ anteultima: fila.anteultima, ultima: fila.ultima, estado: fila.estado })
     .eq("formacion", f.formacion)
@@ -71,7 +76,7 @@ for (const f of backup) {
   modificadas++
 }
 
-const { data: despues, error: errDespues } = await supabase
+const { data: despues, error: errDespues } = await insforge.database
   .from("formaciones")
   .select("formacion, anteultima, ultima, estado")
   .order("formacion")

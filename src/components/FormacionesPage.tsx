@@ -8,7 +8,7 @@ import { SyncBadge } from "./SyncBadge"
 import type { useFormaciones } from "../hooks/useFormaciones"
 import { compartirInforme, generarInforme } from "../lib/report"
 import { ESTADO_LABEL } from "../lib/types"
-import { supabaseConfigurado } from "../lib/supabase"
+import { insforgeConfigurado } from "../lib/insforge"
 
 export type UseFormacionesResult = ReturnType<typeof useFormaciones>
 
@@ -71,7 +71,7 @@ export function FormacionesPage({ datos, esEditor, esVisitante, usuario, rol, ah
         </div>
 
         <div className="mt-3 flex gap-2 flex-wrap items-center">
-          {supabaseConfigurado && (
+          {insforgeConfigurado && (
             <SyncBadge online={online} pendientes={pendientes} onSync={() => void syncPending()} />
           )}
         </div>

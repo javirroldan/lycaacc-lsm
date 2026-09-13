@@ -14,7 +14,7 @@ const STORAGE_VISITANTE = "trenes-app.visitante"
 type Pagina = "formaciones" | "locomotoras"
 
 export default function App() {
-  const { session, rol, loading: authLoading, signIn, signOut } = useAuth()
+  const { usuario, rol, loading: authLoading, signIn, signOut } = useAuth()
   const [visitante, setVisitante] = useState(() => localStorage.getItem(STORAGE_VISITANTE) === "1")
   const [pagina, setPagina] = useState<Pagina>("formaciones")
   const [ahora, setAhora] = useState(fechaAhora())
@@ -27,7 +27,6 @@ export default function App() {
     return () => clearInterval(t)
   }, [])
 
-  const usuario = session?.user ?? null
   const esVisitante = visitante && !usuario
   const esEditor = !!usuario && rol !== null
 

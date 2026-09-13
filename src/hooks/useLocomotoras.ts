@@ -1,9 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import { supabase } from "../lib/supabase"
+import type { SocketMessage } from "@insforge/sdk"
+import { insforge } from "../lib/insforge"
 import { calcularDias } from "../lib/dates"
 import { ordenarPorCriticidadLoco, semaforoLoco } from "../lib/datesLocomotoras"
 import type { CamposEditablesLocomotora, Locomotora, LocomotoraDB } from "../lib/typesLocomotoras"
 import { addOp, getOps, removeOp } from "../lib/offline"
+
+const CANAL = "locomotoras"
+const EVENTO_CAMBIO = "locomotora:changed"
+const EVENTO_BORRADO = "locomotora:deleted"
 
 function derivar(db: LocomotoraDB[]): Locomotora[] {
   return ordenarPorCriticidadLoco(
@@ -33,7 +38,7 @@ export function useLocomotoras() {
     const ops = await getOps("locomotoras")
     if (ops.length === 0) return
     for (const op of ops) {
-      const { error } = await supabase
+      const { error } = await insforge.database
         .from("locomotoras")
         .update(op.campos)
         .eq("id", op.registroId)
@@ -45,12 +50,12 @@ export function useLocomotoras() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const { data, error } = await supabase
+    const { data, error: err } = await insforge.database
       .from("locomotoras")
       .select("*")
       .order("ultima")
-    if (error) {
-      setError(error.message)
+    if (err) {
+      setError(err.message)
     } else if (data) {
       setLocomotoras(derivar(data as LocomotoraDB[]))
     }
@@ -69,34 +74,38 @@ export function useLocomotoras() {
     window.addEventListener("online", onOnline)
     window.addEventListener("offline", onOffline)
 
-    const channel = supabase
-      .channel("realtime-locomotoras")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "locomotoras" },
-        (payload) => {
-          const nuevo = payload.new as LocomotoraDB | null
-          const viejo = payload.old as LocomotoraDB | null
-          setLocomotoras((prev) => {
-            if (payload.eventType === "DELETE" || !nuevo) {
-              if (!viejo) return prev
-              return prev.filter((l) => l.id !== viejo.id)
-            }
-            const existe = prev.some((l) => l.id === nuevo.id)
-            const act = derivar([nuevo])
-            if (existe) {
-              return prev.map((l) => (l.id === nuevo.id ? act[0] : l))
-            }
-            return ordenarPorCriticidadLoco([...prev, act[0]])
-          })
-        },
-      )
-      .subscribe()
+    const onCambio = (msg: SocketMessage) => {
+      const nuevo = msg as unknown as LocomotoraDB | null
+      if (!nuevo?.id) return
+      setLocomotoras((prev) => {
+        const existe = prev.some((l) => l.id === nuevo.id)
+        const act = derivar([nuevo])
+        if (existe) {
+          return prev.map((l) => (l.id === nuevo.id ? act[0] : l))
+        }
+        return ordenarPorCriticidadLoco([...prev, act[0]])
+      })
+    }
+
+    const onBorrado = (msg: SocketMessage) => {
+      const viejo = msg as unknown as LocomotoraDB | null
+      if (!viejo?.id) return
+      setLocomotoras((prev) => prev.filter((l) => l.id !== viejo.id))
+    }
+
+    insforge.realtime.on(EVENTO_CAMBIO, onCambio)
+    insforge.realtime.on(EVENTO_BORRADO, onBorrado)
+    void insforge.realtime
+      .connect()
+      .then(() => insforge.realtime.subscribe(CANAL))
+      .catch((e) => console.error("Error al suscribirse a realtime de locomotoras:", e))
 
     return () => {
       window.removeEventListener("online", onOnline)
       window.removeEventListener("offline", onOffline)
-      supabase.removeChannel(channel)
+      insforge.realtime.off(EVENTO_CAMBIO, onCambio)
+      insforge.realtime.off(EVENTO_BORRADO, onBorrado)
+      insforge.realtime.unsubscribe(CANAL)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

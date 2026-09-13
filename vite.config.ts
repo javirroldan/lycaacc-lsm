@@ -31,10 +31,10 @@ export default defineConfig({
         navigateFallback: '/index.html',
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => url.hostname.endsWith('supabase.co'),
+            urlPattern: ({ url }) => url.hostname.endsWith('insforge.app'),
             handler: 'NetworkFirst',
             options: {
-              cacheName: 'supabase-cache',
+              cacheName: 'insforge-cache',
               networkTimeoutSeconds: 8,
               expiration: { maxEntries: 256, maxAgeSeconds: 60 * 60 },
               cacheableResponse: { statuses: [0, 200] },

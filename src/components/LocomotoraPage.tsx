@@ -7,7 +7,7 @@ import { SyncBadge } from "./SyncBadge"
 import type { useLocomotoras } from "../hooks/useLocomotoras"
 import type { EstadoLocomotora } from "../lib/typesLocomotoras"
 import { ESTADO_LOCO_LABEL, SERVICIO_LABEL } from "../lib/typesLocomotoras"
-import { supabaseConfigurado } from "../lib/supabase"
+import { insforgeConfigurado } from "../lib/insforge"
 
 export type UseLocomotorasResult = ReturnType<typeof useLocomotoras>
 
@@ -58,7 +58,7 @@ export function LocomotoraPage({ datos, esEditor, esVisitante, usuario, rol, aho
         </div>
 
         <div className="mt-3 flex gap-2 flex-wrap items-center">
-          {supabaseConfigurado && (
+          {insforgeConfigurado && (
             <SyncBadge online={online} pendientes={pendientes} onSync={() => void syncPending()} />
           )}
         </div>

@@ -1,6 +1,6 @@
 # Trenes App — Planificación y control de servicios
 
-Webapp móvil (PWA) para la planificación y control de servicios de lavado de formaciones y de locomotoras. React + Vite + Tailwind, backend en Supabase (PostgreSQL + Auth + Realtime), desplegado en Vercel.
+Webapp móvil (PWA) para la planificación y control de servicios de lavado de formaciones y de locomotoras. React + Vite + Tailwind, backend en **InsForge** (PostgreSQL + Auth + Realtime), desplegado en InsForge Sites / Vercel. Proyecto paralelo del repo original `aacc-lsm` (trenes-app).
 
 Dos secciones navegables desde el **menú flotante** inferior:
 - **Formaciones**: planificación y control de servicios de lavado de formaciones.
@@ -11,25 +11,29 @@ Dos secciones navegables desde el **menú flotante** inferior:
 
 ## Puesta en marcha
 
-### 1. Supabase
+### 1. InsForge
 
-1. Creá un proyecto en [supabase.com](https://supabase.com) (plan gratuito). Anotá la **Project URL** y la **anon key** (Dashboard → Settings → Data API).
-2. En el **SQL Editor**, ejecutá `supabase/migrations/0001_init.sql` (tablas `formaciones`, `roles`, `historial`, RLS, Realtime y seed de 23 formaciones). Si la base ya existe, corré también `0003_descripcion.sql` para agregar el campo `descripcion` a `formaciones`. Para la sección de locomotoras, corré `0004_locomotoras.sql` (tabla `locomotoras`, `historial_locomotoras`, trigger de auditoría, RLS, Realtime y seed de 26 locomotoras) y `0005_descripcion_locomotoras.sql` (agrega el campo `descripcion` a `locomotoras` y audita ese campo).
-3. **Login de admin**: es con **usuario + contraseña** (p. ej. `admin`). La app resuelve el usuario a un email interno (`admin` → `admin@trenes.local`) y la contraseña vive únicamente hasheada en Supabase Auth:
-   - La cuenta se crea con la service role (`auth.admin.createUser`), normalmente vía script de Node con `SUPABASE_SERVICE_ROLE_KEY`.
-   - Después se asigna el rol (SQL Editor):
-     ```sql
-     insert into public.roles (user_id, rol)
-     select id, 'admin' from auth.users where email = 'admin@trenes.local'
-     on conflict (user_id) do update set rol = 'admin';
-     ```
-4. **Importante**: desactivá el alta pública de usuarios — Dashboard → **Authentication → Sign In / Providers → Email** → apagá *Allow new users to sign up*. El registro está quitado de la UI; este ajuste lo bloquea también por API.
+1. Creá un proyecto en [insforge.app](https://insforge.app). Anotá la **URL** (`https://<proyecto>.insforge.app`) y las claves **ANON_KEY** y **API_KEY** (panel de secretos, o `npx @insforge/cli secrets get`).
+2. Aplicá las migraciones con el CLI:
+   ```bash
+   npx @insforge/cli login
+   npx @insforge/cli link            # vinculá el proyecto en esta carpeta
+   npx @insforge/cli db migrations up --all
+   ```
+   Esto crea tablas (`formaciones`, `roles`, `historial`, `locomotoras`, `historial_locomotoras`), funciones, RLS, triggers de auditoría y triggers **Realtime**, y aplica el seed base (23 formaciones + 26 locomotoras). Ver carpeta `migrations/`.
+3. **Login de admin**: es con **usuario + contraseña** (p. ej. `admin`). La app resuelve el usuario a un email interno (`admin` → `admin@trenes.local`) y la contraseña vive únicamente hasheada en InsForge Auth. Para crear la cuenta y asignarle el rol:
+   ```bash
+   cp .env.example .env
+   # completá VITE_INSFORGE_ANON_KEY y, en .env.local, INSFORGE_URL / INSFORGE_API_KEY / INSFORGE_ADMIN_PASSWORD
+   npm run setup:admin             # crea admin@trenes.local (auto-confirm) + rol admin
+   ```
+4. Sincronizá los datos de producción desde `backuotrenes.json` (opcional, ver `npm run sync`).
 
 ### 2. Configuración local
 
 ```bash
 npm install
-cp .env.example .env   # completá VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY
+cp .env.example .env   # completá VITE_INSFORGE_URL y VITE_INSFORGE_ANON_KEY
 npm run dev            # http://localhost:5173
 ```
 
@@ -37,25 +41,26 @@ Variables de entorno:
 
 | Variable                    | Dónde      | Uso                                   |
 | --------------------------- | ---------- | ------------------------------------- |
-| `VITE_SUPABASE_URL`         | `.env`     | Cliente de la app                     |
-| `VITE_SUPABASE_ANON_KEY`    | `.env`     | Cliente de la app (lectura + auth)    |
-| `SUPABASE_SERVICE_ROLE_KEY` | `.env.local` | Solo para scripts (nunca en el front ni en git) |
+| `VITE_INSFORGE_URL`         | `.env`     | Cliente de la app                     |
+| `VITE_INSFORGE_ANON_KEY`    | `.env`     | Cliente de la app (lectura + auth)    |
+| `INSFORGE_API_KEY`          | `.env.local` | Solo para scripts (nunca en el front ni en git) |
+| `INSFORGE_ADMIN_PASSWORD`   | `.env.local` | Password inicial del admin (setup:admin) |
 
 `.env*` están en `.gitignore`; nunca se commitean.
 
-### 3. Vercel
+### 3. Vercel / InsForge Sites
 
 1. Subí el repo a GitHub.
-2. En [vercel.com](https://vercel.com) → **Add New → Project**, importá el repo.
+2. En [vercel.com](https://vercel.com) → **Add New → Project**, importá el repo (o deployá desde InsForge Sites).
 3. Framework preset: **Vite**. Build: `npm run build`. Output: `dist`.
-4. En **Environment Variables** agregá `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` y hacé **Deploy**.
+4. En **Environment Variables** agregá `VITE_INSFORGE_URL` y `VITE_INSFORGE_ANON_KEY` y hacé **Deploy**.
 
 ## Funcionalidades
 
 - **Dos secciones** (Formaciones y Locomotoras) navegadas con un **menú flotante** blanco en la parte inferior; los iconos activos son azul oscuro y los inactivos grises.
 - **Login solo admin** (usuario/contraseña) y **"Ver como empleado"** en solo lectura.
 - El modo empleado **persiste al recargar** (se guarda en `localStorage`) y tiene su botón **Salir**.
-- **Edición del admin con botones**: la card tiene modo edición (fechas, estado y **descripción**) con botones **Editar / Guardar / Eliminar**. Los cambios se persisten solo al tocar **Guardar** (optimista → IndexedDB → Sync a Supabase). Sin conexión queda encolado y sincroniza al reconectar. Aplica en Formaciones y Locomotoras.
+- **Edición del admin con botones**: la card tiene modo edición (fechas, estado y **descripción**) con botones **Editar / Guardar / Eliminar**. Los cambios se persisten solo al tocar **Guardar** (optimista → IndexedDB → Sync a InsForge). Sin conexión queda encolado y sincroniza al reconectar. Aplica en Formaciones y Locomotoras.
 - **Eliminar** limpia el contenido de la formación (fechas, estado a `fuera-servicio` y descripción); no borra la fila.
 - **Descripción/detalle** editable por admin; el **empleado** la ve (solo lectura) arriba de la línea de situación.
 - **Locomotoras**: la card muestra último lavado, días sin lavar, semáforo por criticidad (verde 0-10, amarillo 11-20, rojo 21+), servicio (Local / LD), situación (En servicio / Detenida) y descripción.
@@ -76,7 +81,8 @@ Variables de entorno:
 | `npm run build` | Compila TS + Vite (genera PWA)              |
 | `npm run lint`  | Lint con oxlint                             |
 | `npm run preview` | Previsualiza el build                     |
-| `npm run sync`  | Upsert de `formaciones` desde `backuotrenes.json` usando la service role (ver `scripts/sync-backup.mjs`) |
+| `npm run sync`  | Upsert de `formaciones` desde `backuotrenes.json` usando la API key admin (ver `scripts/sync-backup.mjs`) |
+| `npm run setup:admin` | Crea `admin@trenes.local` (auto-confirm) y le asigna rol `admin` (ver `scripts/setup-admin.mjs`) |
 
 ## Estructura del proyecto
 
@@ -96,7 +102,7 @@ src/
     useLocomotoras.ts       Ídem para la tabla locomotoras (carga, Realtime,
                             cola de pendientes y sync)
   lib/
-    supabase.ts             Cliente Supabase, DOMINIO_ADMIN, usuarioAEmail,
+    insforge.ts             Cliente InsForge, DOMINIO_ADMIN, usuarioAEmail,
                             fetchRol
     types.ts                Tipos: Estado, FormacionDB, Formacion,
                             CamposEditables, ESTADOS/ESTADO_LABEL
@@ -137,26 +143,20 @@ public/
 icon_PyC.jpeg               Fuente del icono de la app (logo de la marca)
 scripts/
   sync-backup.mjs           Sincroniza formaciones desde backuotrenes.json
-                            (usa SUPABASE_SERVICE_ROLE_KEY)
-supabase/migrations/
-  0001_init.sql             Esquema + RLS + realtime + seed inicial
-  0002_actualizar_datos.sql Snapshot de datos (hoy el sync se hace por
-                            script; no volver a aplicar por SQL)
-  0003_descripcion.sql      Agrega columna `descripcion` a formaciones
-                            y audita ese campo en `historial`
-  0004_locomotoras.sql      Tabla `locomotoras`, `historial_locomotoras`,
-                            trigger de auditoría, RLS, Realtime y seed de 26
-                            locomotoras
-  0005_descripcion_locomotoras.sql
-                            Agrega columna `descripcion` a locomotoras
-                            y audita ese campo en `historial_locomotoras`
+                            (usa INSFORGE_API_KEY)
+  setup-admin.mjs           Crea admin@trenes.local con auto-confirm y le
+                            asigna rol admin
+migrations/
+  20260912101500_init.sql   Esquema + RLS + functions + grants + triggers
+                            Realtime (InsForge)
+  20260912101601_seed.sql   Seed base (23 formaciones + 26 locomotoras)
 ```
 
 ### Flujo de datos
 
 1. **Admin edita** una tarjeta → entra en modo edición y toca **Guardar** → `FormationCard.guardar` / `LocomotoraCard.guardar` → `onCambio` → `aplicarCambio` (`useFormaciones.ts` / `useLocomotoras.ts`). **Eliminar** llama a `aplicarCambio` con fechas/estado/descripción en blanco.
-2. `aplicarCambio` actualiza el estado al instante, lo encola en **IndexedDB** (`offline.ts`, con la tabla correspondiente) y, si hay red, hace `.update()` a Supabase.
-3. Supabase dispara **Realtime** → todos los clientes suscritos (admin y empleados) reciben el payload y rederivan `dias`/semáforo.
+2. `aplicarCambio` actualiza el estado al instante, lo encola en **IndexedDB** (`offline.ts`, con la tabla correspondiente) y, si hay red, hace `.update()` a InsForge.
+3. Los triggers `notificar_cambio_formacion` / `notificar_cambio_locomotora` publican el cambio con `realtime.publish` en los canales `formaciones` (evento `formacion:changed`/`formacion:deleted`) y `locomotoras` (`locomotora:changed`/`locomotora:deleted`) → todos los clientes suscritos (admin y empleados) reciben el payload y rederivan `dias`/semáforo.
 4. **Vista como empleado**: el `select` está abierto a todos (`RLS using(true)`); el `update/insert/delete` requiere rol `admin`/`editor` (`public.es_editor()`). Los triggers `log_cambio` (formaciones) y `log_cambio_locomotora` (locomotoras) auditan los cambios en `historial` / `historial_locomotoras`.
 
 ### Base de datos
@@ -171,5 +171,5 @@ supabase/migrations/
 
 - `dias`/semáforo se recalculan al cargar, con cada evento Realtime y al editar; no hay aún un reloj que los actualice solo al pasar la medianoche (pendiente).
 - Conteo de días: se toma desde `ultima` (fecha de ingreso). El día de ingreso es **0 días** (se muestra "Hoy"); días `1`, `2`, `3`… indican cuántos días lleva en el taller. `anteultima` es solo referencia y no participa del cálculo. Se corrigió un bug de zona horaria que desplazaba la fecha de ingreso un día atrás (el cálculo ahora es en UTC).
-- Al regenerar la base, `0002_actualizar_datos.sql` quedó como respaldo: el camino actual es `npm run sync` con `backuotrenes.json`.
+- Al regenerar la base, el camino es `npx @insforge/cli db migrations up --all` + `npm run sync` con `backuotrenes.json`.
 - El color de la barra de estado del teléfono (theme color) se lee al instalar la PWA; si ya está instalada y se cambió, puede requerir desinstalar y reinstalar para verlo.
