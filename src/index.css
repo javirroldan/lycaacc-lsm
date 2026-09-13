@@ -32,25 +32,12 @@ body {
   overflow-x: clip;
   max-width: 100%;
   background-color: #0a0e1a;
-}
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background-image: url("/trenes.jpg");
+  background-image: linear-gradient(rgba(10, 14, 26, 0.55), rgba(10, 14, 26, 0.55)),
+    url("/trenes.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-}
-
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background-color: rgba(10, 14, 26, 0.45);
+  background-attachment: fixed;
 }
 
 body::-webkit-scrollbar {
