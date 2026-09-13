@@ -36,12 +36,36 @@ if (!url || !apiKey || !password) {
 const adminEmail = "admin@trenes.local"
 const insforge = createAdminClient({ baseUrl: url, apiKey })
 
-const res = await fetch(`${url}/api/auth/users`, {
+async function api(path, options = {}) {
+  const res = await fetch(`${url}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+      ...(options.headers ?? {}),
+    },
+  })
+  const body = await res.json().catch(() => ({}))
+  return { res, body }
+}
+
+const { body: lista } = await api("/api/auth/users")
+const existente = (lista?.data ?? []).find((u) => u.email === adminEmail)
+
+if (existente) {
+  const { res } = await api("/api/auth/users", {
+    method: "DELETE",
+    body: JSON.stringify({ userIds: [existente.id] }),
+  })
+  if (!res.ok) {
+    console.error(`No se pudo recrear el admin (DELETE ${res.status}):`, existente)
+    process.exit(1)
+  }
+  console.log("Admin previo eliminado:", existente.id)
+}
+
+const { res: crea, body: creado } = await api("/api/auth/users", {
   method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${apiKey}`,
-  },
   body: JSON.stringify({
     email: adminEmail,
     password,
@@ -49,17 +73,18 @@ const res = await fetch(`${url}/api/auth/users`, {
     autoConfirm: true,
   }),
 })
-
-const body = await res.json()
-
-if (!res.ok) {
-  console.error(`No se pudo crear el usuario admin (${res.status}):`, body)
+if (!crea.ok) {
+  console.error(`No se pudo crear el usuario admin (${crea.status}):`, creado)
   process.exit(1)
 }
 
-const userId = body?.id ?? body?.user?.id ?? body?.data?.id
+let userId = creado?.user?.id ?? creado?.data?.id ?? creado?.id
 if (!userId) {
-  console.error("No se pudo obtener el id del usuario admin. Respuesta:", body)
+  const { body: lista2 } = await api("/api/auth/users")
+  userId = (lista2?.data ?? []).find((u) => u.email === adminEmail)?.id
+}
+if (!userId) {
+  console.error("No se pudo obtener el id del usuario admin. Respuesta:", creado)
   process.exit(1)
 }
 
