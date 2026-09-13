@@ -14,14 +14,13 @@ export type UseLocomotorasResult = ReturnType<typeof useLocomotoras>
 interface Props {
   datos: UseLocomotorasResult
   esEditor: boolean
-  esVisitante: boolean
   usuario: { email?: string | undefined } | null
   rol: "admin" | "editor" | null
   ahora: string
   onSalir: () => void
 }
 
-export function LocomotoraPage({ datos, esEditor, esVisitante, usuario, rol, ahora, onSalir }: Props) {
+export function LocomotoraPage({ datos, esEditor, usuario, rol, ahora, onSalir }: Props) {
   const { locomotoras, loading, error, online, pendientes, aplicarCambio, syncPending } = datos
   const [estadoModal, setEstadoModal] = useState<EstadoLocomotora | null>(null)
 
@@ -48,7 +47,7 @@ export function LocomotoraPage({ datos, esEditor, esVisitante, usuario, rol, aho
 
         <div className="flex items-center gap-2 mt-3 flex-wrap">
           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-white/20">
-            {esEditor ? "✏️ MODO EDICIÓN" : esVisitante ? "👁️ EMPLEADO" : "👁️ SOLO LECTURA"}
+            {esEditor ? "✏️ MODO EDICIÓN" : "👁️ EMPLEADO (SOLO LECTURA)"}
           </span>
           {usuario?.email && (
             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-white/20">
@@ -95,7 +94,7 @@ export function LocomotoraPage({ datos, esEditor, esVisitante, usuario, rol, aho
           </>
         )}
 
-        {!esEditor && !esVisitante && (
+        {!esEditor && (
           <div className="rounded-xl bg-amber-100 border border-amber-200 text-amber-800 px-4 py-3 text-sm">
             No tenés permisos de edición ({rol === null ? "rol sin asignar" : "solo lectura"}). Hablá con el administrador.
           </div>

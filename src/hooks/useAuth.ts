@@ -54,11 +54,16 @@ export function useAuth() {
   const iniciarPorCodigo = useCallback(
     async (codigo: string): Promise<string | null> => {
       const tipo = await validarCodigo(codigo)
-      if (!tipo) return "Código inválido."
+      if (!tipo) return "Código inválido. Probá de nuevo."
+      const email = emailDeCuenta(tipo)
+      const password = passwordDeCuenta(tipo)
+      if (!password) {
+        return `Código correcto, pero falta VITE_${tipo.toUpperCase()}_PASSWORD en tu .env.`
+      }
       const { data, error } = await insforge.auth.signInWithPassword({
         method: "password",
-        email: emailDeCuenta(tipo),
-        password: passwordDeCuenta(tipo),
+        email,
+        password,
       })
       if (data?.user) {
         setUsuario(data.user)

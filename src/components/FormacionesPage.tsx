@@ -15,14 +15,13 @@ export type UseFormacionesResult = ReturnType<typeof useFormaciones>
 interface Props {
   datos: UseFormacionesResult
   esEditor: boolean
-  esVisitante: boolean
   usuario: { email?: string | undefined } | null
   rol: "admin" | "editor" | null
   ahora: string
   onSalir: () => void
 }
 
-export function FormacionesPage({ datos, esEditor, esVisitante, usuario, rol, ahora, onSalir }: Props) {
+export function FormacionesPage({ datos, esEditor, usuario, rol, ahora, onSalir }: Props) {
   const { formaciones, loading, error, online, pendientes, aplicarCambio, syncPending } = datos
   const [vista, setVista] = useState<"cards" | "tabla">("cards")
   const [situacion, setSituacion] = useState<"limpieza" | "reparacion" | "fuera-servicio" | null>(null)
@@ -61,7 +60,7 @@ export function FormacionesPage({ datos, esEditor, esVisitante, usuario, rol, ah
 
         <div className="flex items-center gap-2 mt-3 flex-wrap">
           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-white/20">
-            {esEditor ? "✏️ MODO EDICIÓN" : esVisitante ? "👁️ EMPLEADO" : "👁️ SOLO LECTURA"}
+            {esEditor ? "✏️ MODO EDICIÓN" : "👁️ EMPLEADO (SOLO LECTURA)"}
           </span>
           {usuario?.email && (
             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-white/20">
@@ -144,7 +143,7 @@ export function FormacionesPage({ datos, esEditor, esVisitante, usuario, rol, ah
           </>
         )}
 
-        {!esEditor && !esVisitante && (
+        {!esEditor && (
           <div className="rounded-xl bg-amber-100 border border-amber-200 text-amber-800 px-4 py-3 text-sm">
             No tenés permisos de edición ({rol === null ? "rol sin asignar" : "solo lectura"}). Hablá con el administrador.
           </div>

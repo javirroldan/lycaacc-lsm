@@ -9,13 +9,10 @@ import { useFormaciones } from "./hooks/useFormaciones"
 import { useLocomotoras } from "./hooks/useLocomotoras"
 import { fechaAhora } from "./lib/dates"
 
-const STORAGE_VISITANTE = "trenes-app.visitante"
-
 type Pagina = "formaciones" | "locomotoras"
 
 export default function App() {
-  const { usuario, rol, loading: authLoading, signIn, iniciarPorCodigo, signOut } = useAuth()
-  const [visitante, setVisitante] = useState(() => localStorage.getItem(STORAGE_VISITANTE) === "1")
+  const { usuario, rol, loading: authLoading, iniciarPorCodigo, signOut } = useAuth()
   const [pagina, setPagina] = useState<Pagina>("formaciones")
   const [ahora, setAhora] = useState(fechaAhora())
 
@@ -27,36 +24,18 @@ export default function App() {
     return () => clearInterval(t)
   }, [])
 
-  const esVisitante = visitante && !usuario
   const esEditor = !!usuario && rol !== null
-
-  const entrarComoVisitante = () => {
-    localStorage.setItem(STORAGE_VISITANTE, "1")
-    setVisitante(true)
-  }
-
-  const salirYVerComoVisitante = () => {
-    void signOut()
-    entrarComoVisitante()
-  }
-
-  const salirDelModoVisitante = () => {
-    localStorage.removeItem(STORAGE_VISITANTE)
-    setVisitante(false)
-  }
 
   if (authLoading) {
     return <LoadingScreen titulo="Cargando…" detalle="Recuperando tu sesión" />
   }
 
-  if (!usuario && !visitante) {
-    return (
-      <AuthView
-        onIniciarSesion={signIn}
-        onIniciarPorCodigo={iniciarPorCodigo}
-        onEntrarComoVisitante={entrarComoVisitante}
-      />
-    )
+  if (!usuario) {
+    return <AuthView onIniciarPorCodigo={iniciarPorCodigo} />
+  }
+
+  const salir = () => {
+    void signOut()
   }
 
   return (
@@ -65,21 +44,19 @@ export default function App() {
         <FormacionesPage
           datos={formaciones}
           esEditor={esEditor}
-          esVisitante={esVisitante}
           usuario={usuario}
           rol={rol}
           ahora={ahora}
-          onSalir={usuario ? salirYVerComoVisitante : salirDelModoVisitante}
+          onSalir={salir}
         />
       ) : (
         <LocomotoraPage
           datos={locomotoras}
           esEditor={esEditor}
-          esVisitante={esVisitante}
           usuario={usuario}
           rol={rol}
           ahora={ahora}
-          onSalir={usuario ? salirYVerComoVisitante : salirDelModoVisitante}
+          onSalir={salir}
         />
       )}
 
