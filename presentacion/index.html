@@ -135,6 +135,19 @@
   .tel-screen img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .tel-screen.arriba img { object-position: top center; }
   .tel-screen.centro img { object-position: center; }
+
+  /* Teléfono agrandado (diapositiva de acceso) */
+  .telefono.grande {
+    width: 258pt;
+    height: 486pt;
+    padding: 12pt;
+    border-radius: 32pt;
+  }
+  .telefono.grande .tel-screen {
+    width: 234pt;
+    height: 462pt;
+    border-radius: 22pt;
+  }
   .tel-island {
     position: absolute;
     top: 8pt;
@@ -412,14 +425,13 @@
         </div>
       </div>
       <div>
-        <div class="telefono">
+        <div class="telefono grande">
           <div class="tel-screen centro"><img src="capturas/login.png" alt="Acceso" /></div>
           <div class="tel-island"></div>
           <div class="tel-indicator"></div>
           <div class="tel-btn bizq"></div>
           <div class="tel-btn bder"></div>
         </div>
-        <div class="caption">ACCESO SEGURO</div>
       </div>
     </div>
     <div class="numero">4 / 6</div>
