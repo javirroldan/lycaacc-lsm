@@ -14,7 +14,7 @@ const STORAGE_VISITANTE = "trenes-app.visitante"
 type Pagina = "formaciones" | "locomotoras"
 
 export default function App() {
-  const { usuario, rol, loading: authLoading, signIn, signOut } = useAuth()
+  const { usuario, rol, loading: authLoading, signIn, iniciarPorCodigo, signOut } = useAuth()
   const [visitante, setVisitante] = useState(() => localStorage.getItem(STORAGE_VISITANTE) === "1")
   const [pagina, setPagina] = useState<Pagina>("formaciones")
   const [ahora, setAhora] = useState(fechaAhora())
@@ -53,6 +53,7 @@ export default function App() {
     return (
       <AuthView
         onIniciarSesion={signIn}
+        onIniciarPorCodigo={iniciarPorCodigo}
         onEntrarComoVisitante={entrarComoVisitante}
       />
     )

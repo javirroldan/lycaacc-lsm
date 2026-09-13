@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useState } from "react"
-import { insforge, fetchRol, usuarioAEmail, type Rol } from "../lib/insforge"
+import {
+  insforge,
+  fetchRol,
+  usuarioAEmail,
+  validarCodigo,
+  emailDeCuenta,
+  passwordDeCuenta,
+  type Rol,
+} from "../lib/insforge"
 import type { UserSchema } from "@insforge/sdk"
 
 export function useAuth() {
@@ -43,11 +51,29 @@ export function useAuth() {
     return error?.message ?? null
   }, [cargarRol])
 
+  const iniciarPorCodigo = useCallback(
+    async (codigo: string): Promise<string | null> => {
+      const tipo = await validarCodigo(codigo)
+      if (!tipo) return "Código inválido."
+      const { data, error } = await insforge.auth.signInWithPassword({
+        method: "password",
+        email: emailDeCuenta(tipo),
+        password: passwordDeCuenta(tipo),
+      })
+      if (data?.user) {
+        setUsuario(data.user)
+        cargarRol(data.user.id)
+      }
+      return error?.message ?? null
+    },
+    [cargarRol],
+  )
+
   const signOut = useCallback(async () => {
     await insforge.auth.signOut()
   }, [])
 
-  return { usuario, rol, loading, signIn, signOut }
+  return { usuario, rol, loading, signIn, iniciarPorCodigo, signOut }
 }
 
 export type UseAuth = ReturnType<typeof useAuth>

@@ -31,3 +31,37 @@ export async function fetchRol(userId: string): Promise<Rol> {
     return null
   }
 }
+
+// ---------- Login por código de acceso (6 dígitos) ----------
+export type TipoAcceso = "admin" | "empleado" | null
+
+/** Valida el código contra la nube: devuelve el tipo de cuenta o null. */
+export async function validarCodigo(codigo: string): Promise<TipoAcceso> {
+  if (!insforgeConfigurado) return null
+  try {
+    for (const tipo of ["admin", "empleado"] as const) {
+      const { data } = await insforge.database.rpc("validar_codigo_acceso", {
+        p_codigo: codigo,
+        p_tipo: tipo,
+      })
+      if (data === true) return tipo
+    }
+  } catch (e) {
+    console.error("Error al validar código de acceso:", e)
+  }
+  return null
+}
+
+/** Email de la cuenta oculta correspondiente (definida en .env.local). */
+export function emailDeCuenta(tipo: TipoAcceso): string {
+  return tipo === "empleado"
+    ? import.meta.env.VITE_EMPLEADO_EMAIL ?? "empleado@trenes.local"
+    : import.meta.env.VITE_ADMIN_EMAIL ?? "admin@trenes.local"
+}
+
+/** Contraseña de la cuenta oculta (solo se usa tras validar el código). */
+export function passwordDeCuenta(tipo: TipoAcceso): string {
+  return tipo === "empleado"
+    ? import.meta.env.VITE_EMPLEADO_PASSWORD ?? ""
+    : import.meta.env.VITE_ADMIN_PASSWORD ?? ""
+}
