@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #0952E2;
+  --color-brand-strong: #0743bc;
+  --color-brand-soft: #e3ecfd;
+  --color-brand-mid: #6b93ef;
+  --color-verde: #28a745;
+  --color-amarillo: #ffc107;
+  --color-rojo: #dc3545;
+}
+
+@keyframes pulse-rojo {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.animate-pulse-rojo {
+  animation: pulse-rojo 2s infinite;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: clip;
+  max-width: 100%;
+}
+
+body {
+  overscroll-behavior-y: contain;
+  -webkit-font-smoothing: antialiased;
+  scrollbar-width: none;
+  overflow-x: clip;
+  max-width: 100%;
+  background-image: url("/trenes.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+}

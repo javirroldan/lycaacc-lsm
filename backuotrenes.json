@@ -1,0 +1,163 @@
+[
+    {
+        "formacion": 1,
+        "anteultima": "27/07/2026",
+        "ultima": "14/08/2026",
+        "dias": 14,
+        "estado": "limpieza"
+    },
+    {
+        "formacion": 2,
+        "anteultima": "",
+        "ultima": "",
+        "dias": null,
+        "estado": "fuera-servicio"
+    },
+    {
+        "formacion": 3,
+        "anteultima": "",
+        "ultima": "",
+        "dias": null,
+        "estado": "fuera-servicio"
+    },
+    {
+        "formacion": 4,
+        "anteultima": "22/07/2026",
+        "ultima": "20/08/2026",
+        "dias": 8,
+        "estado": "limpieza"
+    },
+    {
+        "formacion": 5,
+        "anteultima": "15/08/2026",
+        "ultima": "28/08/2026",
+        "dias": 0,
+        "estado": "limpieza"
+    },
+    {
+        "formacion": 6,
+        "anteultima": "08/08/2026",
+        "ultima": "26/08/2026",
+        "dias": 2,
+        "estado": "limpieza"
+    },
+    {
+        "formacion": 7,
+        "anteultima": "14/05/2026",
+        "ultima": "05/06/2026",
+        "dias": 84,
+        "estado": "reparacion"
+    },
+    {
+        "formacion": 8,
+        "anteultima": "16/07/2026",
+        "ultima": "06/08/2026",
+        "dias": 22,
+        "estado": "limpieza"
+    },
+    {
+        "formacion": 9,
+        "anteultima": "",
+        "ultima": "",
+        "dias": null,
+        "estado": "fuera-servicio"
+    },
+    {
+        "formacion": 10,
+        "anteultima": "07/07/2026",
+        "ultima": "05/08/2026",
+        "dias": 23,
+        "estado": "limpieza"
+    },
+    {
+        "formacion": 11,
+        "anteultima": "",
+        "ultima": "",
+        "dias": null,
+        "estado": "fuera-servicio"
+    },
+    {
+        "formacion": 12,
+        "anteultima": "17/07/2026",
+        "ultima": "11/08/2026",
+        "dias": 17,
+        "estado": "limpieza"
+    },
+    {
+        "formacion": 13,
+        "anteultima": "10/08/2026",
+        "ultima": "22/08/2026",
+        "dias": 6,
+        "estado": "limpieza"
+    },
+    {
+        "formacion": 14,
+        "anteultima": "01/08/2026",
+        "ultima": "25/08/2026",
+        "dias": 3,
+        "estado": "limpieza"
+    },
+    {
+        "formacion": 15,
+        "anteultima": "",
+        "ultima": "",
+        "dias": null,
+        "estado": "fuera-servicio"
+    },
+    {
+        "formacion": 16,
+        "anteultima": "25/07/2026",
+        "ultima": "13/08/2026",
+        "dias": 15,
+        "estado": "limpieza"
+    },
+    {
+        "formacion": 17,
+        "anteultima": "28/07/2026",
+        "ultima": "21/08/2026",
+        "dias": 7,
+        "estado": "limpieza"
+    },
+    {
+        "formacion": 18,
+        "anteultima": "29/07/2026",
+        "ultima": "12/08/2026",
+        "dias": 16,
+        "estado": "limpieza"
+    },
+    {
+        "formacion": 19,
+        "anteultima": "11/07/2026",
+        "ultima": "07/08/2026",
+        "dias": 21,
+        "estado": "limpieza"
+    },
+    {
+        "formacion": 20,
+        "anteultima": "18/07/2026",
+        "ultima": "19/08/2026",
+        "dias": 9,
+        "estado": "limpieza"
+    },
+    {
+        "formacion": 21,
+        "anteultima": "31/07/2026",
+        "ultima": "18/08/2026",
+        "dias": 10,
+        "estado": "limpieza"
+    },
+    {
+        "formacion": 22,
+        "anteultima": "24/08/2026",
+        "ultima": "27/08/2026",
+        "dias": 1,
+        "estado": "limpieza"
+    },
+    {
+        "formacion": 23,
+        "anteultima": "20/07/2026",
+        "ultima": "04/08/2026",
+        "dias": 24,
+        "estado": "limpieza"
+    }
+]
