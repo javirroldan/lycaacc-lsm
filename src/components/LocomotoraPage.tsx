@@ -14,13 +14,12 @@ export type UseLocomotorasResult = ReturnType<typeof useLocomotoras>
 interface Props {
   datos: UseLocomotorasResult
   esEditor: boolean
-  usuario: { email?: string | undefined } | null
   rol: "admin" | "editor" | null
   ahora: string
   onSalir: () => void
 }
 
-export function LocomotoraPage({ datos, esEditor, usuario, rol, ahora, onSalir }: Props) {
+export function LocomotoraPage({ datos, esEditor, rol, ahora, onSalir }: Props) {
   const { locomotoras, loading, error, online, pendientes, aplicarCambio, syncPending } = datos
   const [estadoModal, setEstadoModal] = useState<EstadoLocomotora | null>(null)
 
@@ -49,11 +48,6 @@ export function LocomotoraPage({ datos, esEditor, usuario, rol, ahora, onSalir }
           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-white/20">
             {esEditor ? "✏️ MODO EDICIÓN" : "👁️ EMPLEADO (SOLO LECTURA)"}
           </span>
-          {usuario?.email && (
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-white/20">
-              {usuario.email}
-            </span>
-          )}
         </div>
 
         <div className="mt-3 flex gap-2 flex-wrap items-center">

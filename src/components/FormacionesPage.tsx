@@ -15,13 +15,12 @@ export type UseFormacionesResult = ReturnType<typeof useFormaciones>
 interface Props {
   datos: UseFormacionesResult
   esEditor: boolean
-  usuario: { email?: string | undefined } | null
   rol: "admin" | "editor" | null
   ahora: string
   onSalir: () => void
 }
 
-export function FormacionesPage({ datos, esEditor, usuario, rol, ahora, onSalir }: Props) {
+export function FormacionesPage({ datos, esEditor, rol, ahora, onSalir }: Props) {
   const { formaciones, loading, error, online, pendientes, aplicarCambio, syncPending } = datos
   const [vista, setVista] = useState<"cards" | "tabla">("cards")
   const [situacion, setSituacion] = useState<"limpieza" | "reparacion" | "fuera-servicio" | null>(null)
@@ -62,11 +61,6 @@ export function FormacionesPage({ datos, esEditor, usuario, rol, ahora, onSalir 
           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-white/20">
             {esEditor ? "✏️ MODO EDICIÓN" : "👁️ EMPLEADO (SOLO LECTURA)"}
           </span>
-          {usuario?.email && (
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-white/20">
-              {usuario.email}
-            </span>
-          )}
         </div>
 
         <div className="mt-3 flex gap-2 flex-wrap items-center">

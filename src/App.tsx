@@ -44,7 +44,6 @@ export default function App() {
         <FormacionesPage
           datos={formaciones}
           esEditor={esEditor}
-          usuario={usuario}
           rol={rol}
           ahora={ahora}
           onSalir={salir}
@@ -53,7 +52,6 @@ export default function App() {
         <LocomotoraPage
           datos={locomotoras}
           esEditor={esEditor}
-          usuario={usuario}
           rol={rol}
           ahora={ahora}
           onSalir={salir}
