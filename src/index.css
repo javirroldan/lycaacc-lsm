@@ -43,8 +43,14 @@ body::before {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  filter: blur(4px);
-  transform: scale(1.05);
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-color: rgba(10, 14, 26, 0.45);
 }
 
 body::-webkit-scrollbar {
