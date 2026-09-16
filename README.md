@@ -63,12 +63,12 @@ Variables de entorno:
 - **Edición del admin con botones**: la card tiene modo edición (fechas, estado y **descripción**) con botones **Editar / Guardar / Eliminar**. Los cambios se persisten solo al tocar **Guardar** (optimista → IndexedDB → Sync a InsForge). Sin conexión queda encolado y sincroniza al reconectar. Aplica en Formaciones y Locomotoras.
 - **Eliminar** limpia el contenido de la formación (fechas, estado a `fuera-servicio` y descripción); no borra la fila.
 - **Descripción/detalle** editable por admin; el **empleado** la ve (solo lectura) arriba de la línea de situación.
-- **Locomotoras**: la card muestra último lavado, días sin lavar, semáforo por criticidad (verde 0-10, amarillo 11-20, rojo 21+), servicio (Local / LD), situación (En servicio / Detenida) y descripción.
+- **Locomotoras**: la card muestra último lavado, días sin lavar, semáforo por criticidad (verde 0-15, amarillo 16-20, rojo 21+), servicio (Local / LD), situación (En servicio / Detenida) y descripción.
 - **Realtime**: empleados y admin ven los cambios en vivo entre dispositivos (en ambas secciones).
 - **Tarjetas informativas clicables**: los botones de `Limpieza`, `Reparación` y `Fuera de servicio` abren una ventana flotante (modal) que enumera las formaciones en ese estado (número, fechas y días de demora), útil para que los empleados sepan cuáles son. Las clicables se distinguen visualmente de las que solo muestran contador con un borde de marca y una sombra más marcada.
 - **Orden por criticidad**: más días de demora arriba; las "fuera de servicio" (sin datos) abajo, separadas en su grupo.
 - Vista por **tarjetas** (móvil) o **tabla** (toggle).
-- Semáforo: verde 0-10 días, amarillo 11-20, rojo 21+ (los días y el semáforo se **calculan en el cliente** a partir de `ultima`). El día de ingreso cuenta **0 días** y se muestra como **"Hoy"** (la formación que entró ayer muestra **1 día**). Los días se calculan con **UTC** para que la fecha de ingreso (`ultima`) no se desplace por la zona horaria del dispositivo.
+- Semáforo: verde 0-15 días, amarillo 16-20, rojo 21+ (los días y el semáforo se **calculan en el cliente** a partir de `ultima`). El día de ingreso cuenta **0 días** y se muestra como **"Hoy"** (la formación que entró ayer muestra **1 día**). Los días se calculan con **UTC** para que la fecha de ingreso (`ultima`) no se desplace por la zona horaria del dispositivo.
 - Informe TXT descargable/compartible (**solo admin**). Compatible con `navigator.share` y fallback a descarga con BOM UTF-8 (acentos correctos).
 - Color de marca **`#0952E2`** (azul) en toda la UI.
 - PWA instalable con **icono propio**, scroll oculto, header con efecto **glass** y fondo fijo con foto `trenes.jpg` (configurado con `background-image` + `background-attachment: fixed` en `body`, para que no se redimensione al scrollear). Barra de estado del teléfono en tono oscuro (`#0a0e1a`).

@@ -67,7 +67,7 @@ export function FormationTable({ formaciones, editor, onCambio }: Props) {
                 </td>
                 <td className="px-3 py-2.5 font-semibold">
                   {f.dias !== null ? (
-                    <span className={f.dias <= 10 ? "text-green-600" : f.dias <= 20 ? "text-amber-600" : "text-red-600"}>{f.dias === 0 ? "Hoy" : f.dias}</span>
+                    <span className={f.dias <= 15 ? "text-green-600" : f.dias <= 20 ? "text-amber-600" : "text-red-600"}>{f.dias === 0 ? "Hoy" : f.dias}</span>
                   ) : (
                     <span className="text-slate-400">—</span>
                   )}

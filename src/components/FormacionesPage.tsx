@@ -1,13 +1,14 @@
 import { useState } from "react"
-import { FileDown, LayoutGrid, LogOut, Table2 } from "lucide-react"
+import { LayoutGrid, LogOut, Table2 } from "lucide-react"
 import { FormationCard } from "./FormationCard"
 import { FormationTable } from "./FormationTable"
+import { InformeButton } from "./InformeButton"
 import { InfoModal } from "./InfoModal"
 import { StatsCards } from "./StatsCards"
 import { SyncBadge } from "./SyncBadge"
 import type { useFormaciones } from "../hooks/useFormaciones"
-import { compartirInforme, generarInforme } from "../lib/report"
 import { ESTADO_LABEL } from "../lib/types"
+import type { Locomotora } from "../lib/typesLocomotoras"
 import { insforgeConfigurado } from "../lib/insforge"
 
 export type UseFormacionesResult = ReturnType<typeof useFormaciones>
@@ -17,24 +18,17 @@ interface Props {
   esEditor: boolean
   rol: "admin" | "editor" | null
   ahora: string
+  locomotoras: Locomotora[]
   onSalir: () => void
 }
 
-export function FormacionesPage({ datos, esEditor, rol, ahora, onSalir }: Props) {
+export function FormacionesPage({ datos, esEditor, rol, ahora, locomotoras, onSalir }: Props) {
   const { formaciones, loading, error, online, pendientes, aplicarCambio, syncPending } = datos
   const [vista, setVista] = useState<"cards" | "tabla">("cards")
   const [situacion, setSituacion] = useState<"limpieza" | "reparacion" | "fuera-servicio" | null>(null)
-  const [tipoInforme, setTipoInforme] = useState<string | null>(null)
 
   const conDatos = formaciones.filter((f) => f.dias !== null)
   const sinDatos = formaciones.filter((f) => f.dias === null)
-
-  const informe = (tipo: string) => {
-    const texto = generarInforme(formaciones)
-    setTipoInforme(tipo)
-    const nombre = `informe-demoras-${new Date().toISOString().slice(0, 10)}`
-    void compartirInforme(texto, nombre).finally(() => setTipoInforme(null))
-  }
 
   return (
     <div className="max-w-4xl mx-auto px-3 py-4 pb-10">
@@ -77,15 +71,7 @@ export function FormacionesPage({ datos, esEditor, rol, ahora, onSalir }: Props)
             {vista === "cards" ? <Table2 className="w-4 h-4" /> : <LayoutGrid className="w-4 h-4" />}
             Vista {vista === "cards" ? "tabla" : "tarjetas"}
           </button>
-          {esEditor && (
-            <button
-              onClick={() => informe("txt")}
-              disabled={tipoInforme !== null}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/15 hover:bg-white/25 transition text-xs font-semibold cursor-pointer disabled:opacity-60"
-            >
-              <FileDown className="w-4 h-4" /> {tipoInforme ? "Generando…" : "Informe TXT"}
-            </button>
-          )}
+          {esEditor && <InformeButton formaciones={formaciones} locomotoras={locomotoras} />}
         </div>
       </header>
 
@@ -148,8 +134,8 @@ export function FormacionesPage({ datos, esEditor, rol, ahora, onSalir }: Props)
         <div className="rounded-xl bg-white px-4 py-3 text-xs text-slate-600 space-y-1.5">
           <p className="font-semibold uppercase tracking-wide text-slate-500">Leyenda</p>
           <div className="flex flex-wrap gap-x-4 gap-y-1">
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-green-500 inline-block" /> Verde: 0-10 días</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" /> Amarillo: 11-20 días</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-green-500 inline-block" /> Verde: 0-15 días</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" /> Amarillo: 16-20 días</span>
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block" /> Rojo: 21+ días</span>
           </div>
           <div className="flex flex-wrap gap-x-4 gap-y-1">

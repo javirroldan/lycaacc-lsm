@@ -2,7 +2,7 @@ import type { Locomotora, SemColorLocomotora } from "./typesLocomotoras"
 
 export function semaforoLoco(dias: number | null): SemColorLocomotora {
   if (dias === null) return "sin"
-  if (dias <= 10) return "verde"
+  if (dias <= 15) return "verde"
   if (dias <= 20) return "amarillo"
   return "rojo"
 }

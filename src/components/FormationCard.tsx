@@ -120,7 +120,7 @@ export function FormationCard({ formacion: f, editor, onCambio }: Props) {
         <div className="flex items-center gap-2 pt-1">
           <CalendarDays className="w-4 h-4 text-slate-400" />
           <span className="text-sm text-slate-600">
-            Demora: <strong className={f.dias === null ? "" : f.dias <= 10 ? "text-green-600" : f.dias <= 20 ? "text-amber-600" : "text-red-600"}>{f.dias === null ? "—" : f.dias === 0 ? "Hoy" : `${f.dias} días`}</strong>
+            Demora: <strong className={f.dias === null ? "" : f.dias <= 15 ? "text-green-600" : f.dias <= 20 ? "text-amber-600" : "text-red-600"}>{f.dias === null ? "—" : f.dias === 0 ? "Hoy" : `${f.dias} días`}</strong>
           </span>
         </div>
 

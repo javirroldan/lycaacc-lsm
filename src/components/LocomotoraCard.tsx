@@ -100,7 +100,7 @@ export function LocomotoraCard({ locomotora: l, editor, onCambio }: Props) {
         <div className="flex items-center gap-2 pt-1">
           <CalendarDays className="w-4 h-4 text-slate-400" />
           <span className="text-sm text-slate-600">
-            Sin lavar: <strong className={l.dias === null ? "" : l.dias <= 10 ? "text-green-600" : l.dias <= 20 ? "text-amber-600" : "text-red-600"}>{l.dias === null ? "—" : l.dias === 0 ? "Hoy" : `${l.dias} días`}</strong>
+            Sin lavar: <strong className={l.dias === null ? "" : l.dias <= 15 ? "text-green-600" : l.dias <= 20 ? "text-amber-600" : "text-red-600"}>{l.dias === null ? "—" : l.dias === 0 ? "Hoy" : `${l.dias} días`}</strong>
           </span>
         </div>
 

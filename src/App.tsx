@@ -46,6 +46,7 @@ export default function App() {
           esEditor={esEditor}
           rol={rol}
           ahora={ahora}
+          locomotoras={locomotoras.locomotoras}
           onSalir={salir}
         />
       ) : (
@@ -54,6 +55,7 @@ export default function App() {
           esEditor={esEditor}
           rol={rol}
           ahora={ahora}
+          formaciones={formaciones.formaciones}
           onSalir={salir}
         />
       )}
