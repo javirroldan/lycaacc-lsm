@@ -225,22 +225,32 @@ export async function generarInformePDF(
   return doc
 }
 
-export async function compartirInformePDF(doc: jsPDF, nombre: string): Promise<boolean> {
+export function descargarInformePDF(doc: jsPDF, nombre: string): Promise<boolean> {
   try {
-    const file = new File([doc.output("blob")], `${nombre}.pdf`, { type: "application/pdf" })
-
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try {
-        await navigator.share({ files: [file], title: "Informe de demoras" })
-        return true
-      } catch {
-        // cancelado o falla → cae a descarga
-      }
-    }
-
     doc.save(`${nombre}.pdf`)
-    return true
+    return Promise.resolve(true)
+  } catch {
+    return Promise.resolve(false)
+  }
+}
+
+export function puedeCompartirPDF(doc: jsPDF): boolean {
+  try {
+    return !!(navigator.canShare && navigator.canShare({ files: [new File([doc.output("blob")], "informe.pdf", { type: "application/pdf" })] }))
   } catch {
     return false
   }
+}
+
+export async function compartirInformePDF(doc: jsPDF, nombre: string): Promise<boolean> {
+  try {
+    const file = new File([doc.output("blob")], `${nombre}.pdf`, { type: "application/pdf" })
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: "Informe de demoras" })
+      return true
+    }
+  } catch {
+    // cancelado o falla → el botón vuelve al estado listo
+  }
+  return false
 }
