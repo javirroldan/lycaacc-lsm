@@ -5,6 +5,8 @@ import { SyncBadge } from "./SyncBadge"
 import { InformeButton } from "./InformeButton"
 import { DropdownSelect } from "./DropdownSelect"
 import { TimeSelect } from "./TimeSelect"
+import { LavadoStats, type LavadoDetalleModo } from "./LavadoStats"
+import { LavadoInfoModal } from "./LavadoInfoModal"
 import type { useLavados } from "../hooks/useLavados"
 import type { Lavado } from "../lib/typesLavado"
 import { FORMACIONES_LAVADO } from "../lib/typesLavado"
@@ -27,6 +29,7 @@ function ordenarReciente(lista: Lavado[]): Lavado[] {
 export function LavadoPage({ datos, esEditor, rol, ahora, onSalir }: Props) {
   const { lavados, loading, error, online, pendientes, aplicarCambio, agregarLavado, eliminarLavado, syncPending } = datos
   const [agregando, setAgregando] = useState(false)
+  const [detalle, setDetalle] = useState<LavadoDetalleModo | null>(null)
   const [form, setForm] = useState<{ formacion: number; ingreso: string; egreso: string }>({
     formacion: FORMACIONES_LAVADO[0],
     ingreso: "",
@@ -49,9 +52,6 @@ export function LavadoPage({ datos, esEditor, rol, ahora, onSalir }: Props) {
     () => FORMACIONES_LAVADO.filter((n) => !porFormacion.some((g) => g.formacion === n)),
     [porFormacion],
   )
-
-  const totalRegistros = lavados.length
-  const totalFormaciones = porFormacion.length
 
   const abrirAlta = () => {
     setForm({ formacion: formacionesDisponibles[0], ingreso: "", egreso: "" })
@@ -106,6 +106,15 @@ export function LavadoPage({ datos, esEditor, rol, ahora, onSalir }: Props) {
       </header>
 
       <main className="space-y-4">
+        {!loading && (
+          <LavadoStats
+            registros={lavados.length}
+            formaciones={porFormacion.length}
+            sinLavados={formacionesDisponibles.length}
+            onVer={setDetalle}
+          />
+        )}
+
         {esEditor && (
           <button
             onClick={abrirAlta}
@@ -195,12 +204,7 @@ export function LavadoPage({ datos, esEditor, rol, ahora, onSalir }: Props) {
         ) : (
           <>
             <div className="flex items-center justify-between px-1">
-              <h2 className="text-white font-bold text-sm uppercase tracking-wide">
-                Lavados{" "}
-                <span className="opacity-80 font-medium normal-case">
-                  ({totalRegistros} registros · {totalFormaciones} {totalFormaciones === 1 ? "formación" : "formaciones"})
-                </span>
-              </h2>
+              <h2 className="text-white font-bold text-sm uppercase tracking-wide">Lavados</h2>
             </div>
 
             <div className="grid grid-cols-1 gap-3">
@@ -242,6 +246,15 @@ export function LavadoPage({ datos, esEditor, rol, ahora, onSalir }: Props) {
         </div>
         <p className="text-center text-white/70 text-xs capitalize">Actualizado: {ahora}</p>
       </footer>
+
+      <LavadoInfoModal
+        abierto={detalle !== null}
+        modo={detalle ?? "registros"}
+        registros={lavados}
+        formaciones={porFormacion}
+        sinLavados={formacionesDisponibles}
+        onCerrar={() => setDetalle(null)}
+      />
     </div>
   )
 }

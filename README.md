@@ -65,17 +65,17 @@ Variables de entorno:
 - **Eliminar** limpia el contenido de la formación (fechas, estado a `fuera-servicio` y descripción); no borra la fila. Ahora pide **doble confirmación** con un `ConfirmModal` del color de la sección (**azul** en Formaciones, **naranja** en Lavado).
 - **Descripción/detalle** editable por admin; el **empleado** la ve (solo lectura) arriba de la línea de situación.
 - **Locomotoras**: la card muestra último lavado, días sin lavar, semáforo por criticidad (verde 0-15, amarillo 16-20, rojo 21+), servicio (Local / LD), situación (En servicio / Detenida) y descripción.
-- **Lavado**: tarjetas acumulativas por formación (1–23, solo las que tienen ≥ 1 registro), clicables en toda la card. Colapsada muestra el **último lavado** con la etiqueta y el valor **en la misma línea** y la fecha de carga; al tocarla se expande con el **historial completo** (scroll interno, más reciente primero) donde el admin puede **Editar / Eliminar** cada registro (editar solo modifica las **horas ingreso/egreso**; `pasadas` y OK quedan fijos) y, al pie, usar el botón **Agregar** (que solo aparece al expandir la card). Mientras está abierto el formulario de nuevo lavado o una edición, tocar la card (incluidos los campos de hora) **no la colapsa ni cancela** la carga. La fila "Lavado" muestra **OK** en verde, **Pendiente** en ámbar y **Sin datos** en gris.
+- **Lavado**: estadísticas clicables arriba de las tarjetas (**Registros**, **Formaciones**, **Sin lavados**) que abren un modal de detalle (`LavadoInfoModal`). Debajo, tarjetas acumulativas por formación (1–23, solo las que tienen ≥ 1 registro), clicables en toda la card. Colapsada muestra el **último lavado** con la etiqueta y el valor **en la misma línea** y la fecha de carga; al tocarla se expande con el **historial completo** (scroll interno, más reciente primero) donde el admin puede **Editar / Eliminar** cada registro (editar solo modifica las **horas ingreso/egreso**; `pasadas` y OK quedan fijos) y, al pie, usar el botón **Agregar** (que solo aparece al expandir la card). Mientras está abierto el formulario de nuevo lavado o una edición, tocar la card (incluidos los campos de hora) **no la colapsa ni cancela** la carga. La fila "Lavado" muestra **OK** en verde, **Pendiente** en ámbar y **Sin datos** en gris.
 - **Alta de lavado** (**solo admin**): **Formación** + horas de ingreso/egreso; `pasadas=2` y `ok=true` se completan en automático (`PASADAS_DEFAULT` / `OK_DEFAULT`). El botón "+ Agregar lavado" (ancho completo de la card, entre el header y las tarjetas) solo lista las formaciones que todavía no tienen tarjeta; si todas ya tienen, se muestra un aviso y se usa el botón "Agregar" de cada tarjeta.
 - **Selector de Formación propio** (`DropdownSelect`): renderizado por portal a `document.body` con **scroll interno**, ancho del campo, abre hacia abajo (o arriba si no hay espacio) y no se desborda en móvil (reemplaza el `<select>` nativo que se cortaba). Cierra tocando afuera, con `Escape` o scrolleando la página (no al scrollear dentro del panel).
 - **Selector de hora propio** (`TimeSelect`): por portal a `document.body`, con columnas **Hora** (00–23) y **Minuto** (00–59) con scroll propio, la selección actual marcada y auto-scroll; abre hacia abajo (o arriba si no hay espacio) para que el menú nunca salga de la pantalla (el `<input type="time">` nativo se cortaba). Cierra tocando afuera, con `Escape` o al scrollear la página, y tiene opción **Limpiar**. Se usa en toda la sección Lavado (alta y edición de registros).
 - **Realtime**: empleados y admin ven los cambios en vivo entre dispositivos (en las tres secciones). Lavado usa el canal `lavados` con eventos `lavado:changed` / `lavado:deleted` vía trigger `notificar_cambio_lavado`.
-- **Tarjetas informativas clicables**: los botones de `Limpieza`, `Reparación` y `Fuera de servicio` abren una ventana flotante (modal) que enumera las formaciones en ese estado (número, fechas y días de demora), útil para que los empleados sepan cuáles son. Las clicables se distinguen visualmente de las que solo muestran contador con un borde de marca y una sombra más marcada.
+- **Tarjetas informativas clicables**: los botones de `Limpieza`, `Reparación` y `Fuera de servicio` (Formaciones) abren un modal azul que enumera las formaciones en ese estado; el indicador `Locomotoras` (En servicio / Detenidas) abre un modal verde; y las tarjetas de Lavado (**Registros** / **Formaciones** / **Sin lavados**) abren un modal naranja que lista los registros de lavado, las formaciones con tarjeta y las formaciones 1–23 sin registros respectivamente. Útil para que los empleados sepan el detalle de cada grupo.
 - **Orden por criticidad**: más días de demora arriba; las "fuera de servicio" (sin datos) abajo, separadas en su grupo.
 - Solo se muestran **tarjetas** (se eliminó la vista de tabla / el toggle).
 - Semáforo: verde 0-15 días, amarillo 16-20, rojo 21+ (los días y el semáforo se **calculan en el cliente** a partir de `ultima`). El día de ingreso cuenta **0 días** y se muestra como **"Hoy"** (la formación que entró ayer muestra **1 día**). Los días se calculan con **UTC** para que la fecha de ingreso (`ultima`) no se desplace por la zona horaria del dispositivo.
 - **Informes PDF por sección** (**solo admin**): botón "Informe PDF" en cada sección (Formaciones **azul**, Locomotoras **verde**, Lavado **naranja**) que abre un modal de **rango de fechas** (`DateRangeModal`) con **Desde / Hasta**; si quedan vacíos se genera el informe completo. Filtra los datos por fecha (último lavado `ultima` en Formaciones/Locomotoras, `created_at` en Lavado) y el PDF agrega la línea **"Período: desde — hasta"** debajo de la fecha de generación, con el resumen y las tablas de los datos filtrados. Compatible con `navigator.share` y fallback a descarga.
-- **Modales centrados (por portal)**: `ConfirmModal`, `DateRangeModal`, `InfoModal` y `LocomotoraInfoModal` se renderizan con `createPortal(..., document.body)` para que queden **siempre centrados en la pantalla** (los headers usan `backdrop-blur`, que atrapaba los `position: fixed` y los dejaba cortados en móvil).
+- **Modales centrados (por portal)**: `ConfirmModal`, `DateRangeModal`, `InfoModal`, `LocomotoraInfoModal` y `LavadoInfoModal` se renderizan con `createPortal(..., document.body)` para que queden **siempre centrados en la pantalla** (los headers usan `backdrop-blur`, que atrapaba los `position: fixed` y los dejaba cortados en móvil).
 - Color de marca **`#0952E2`** (azul) en toda la UI; verde para Locomotoras y naranja para Lavado.
 - PWA instalable con **icono propio**, scroll oculto, header con efecto **glass** y fondo fijo con foto `trenes.jpg` (configurado con `background-image` + `background-attachment: fixed` en `body`, para que no se redimensione al scrollear). Barra de estado del teléfono en tono oscuro (`#0a0e1a`).
 
@@ -140,9 +140,9 @@ src/
                             informe PDF azul y modal de situación
     LocomotoraPage.tsx      Página Locomotoras: header, stats, tarjetas e
                             informe PDF verde
-    LavadoPage.tsx          Página Lavado: agrupa por formación, alta con
-                            DropdownSelect + TimeSelect (horas), informe PDF
-                            naranja
+    LavadoPage.tsx          Página Lavado: stats clicables, agrupa por
+                            formación, alta con DropdownSelect + TimeSelect
+                            (horas), informe PDF naranja
     FormationCard.tsx       Tarjeta de formación (gris claro translúcido):
                             clicable en admin para revelar Editar/Eliminar/
                             Guardar, modo edición, descripción y ConfirmModal azul
@@ -158,9 +158,15 @@ src/
     StatsCards.tsx          Contadores verdes/amarillos/rojos y por estado;
                             las tarjetas clicables llevan borde + sombra
     LocomotoraStats.tsx     Contadores por criticidad y situación de locomotoras
+    LavadoStats.tsx         Contadores clicables de Lavado: Registros,
+                            Formaciones (con tarjeta) y Sin lavados (1–23
+                            que no tienen registros)
     InfoModal.tsx           Modal (por portal a <body>) con el listado de
                             formaciones en Limpieza/Reparación/Fuera de servicio
     LocomotoraInfoModal.tsx Modal (por portal) con detalle de estado de locomotoras
+    LavadoInfoModal.tsx     Modal (por portal, naranja) con detalle de Lavado:
+                            registros (formación + horas + fecha + OK), las
+                            formaciones con lavado y las que aún no tienen
     ConfirmModal.tsx        Modal de doble confirmación por portal, tema
                             azul/verde/naranja
     DateRangeModal.tsx      Modal de rango de fechas (Desde/Hasta) por portal,
