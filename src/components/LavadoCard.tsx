@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { CalendarDays, ChevronDown, ChevronUp, History, Pencil, Plus, Save, Trash2, X } from "lucide-react"
 import { ConfirmModal } from "./ConfirmModal"
+import { TimeSelect } from "./TimeSelect"
 import {
   OK_OPCIONES,
   OK_VALOR_CLASS,
@@ -12,9 +13,6 @@ import {
   type NuevoLavado,
   type ValorOk,
 } from "../lib/typesLavado"
-
-const INPUT_CLASS =
-  "flex-1 px-2 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-700 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none"
 
 const INPUT_SM =
   "w-16 px-2 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-700 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none"
@@ -70,11 +68,10 @@ function RegistroCuerpo({ l, editando, borrador, setBorrador }: {
       <div className="flex items-center justify-between gap-3">
         <span className="text-xs text-slate-500 w-28 shrink-0">Hora ingreso</span>
         {editando ? (
-          <input
-            type="time"
-            value={borrador.ingreso}
-            onChange={(e) => setBorrador({ ...borrador, ingreso: e.target.value })}
-            className={INPUT_CLASS}
+          <TimeSelect
+            value={borrador.ingreso || null}
+            onChange={(v) => setBorrador({ ...borrador, ingreso: v ?? "" })}
+            className="flex-1"
           />
         ) : (
           <span className={`flex-1 text-sm font-medium ${l.ingreso ? "text-slate-700" : "text-slate-400"}`}>
@@ -86,11 +83,10 @@ function RegistroCuerpo({ l, editando, borrador, setBorrador }: {
       <div className="flex items-center justify-between gap-3">
         <span className="text-xs text-slate-500 w-28 shrink-0">Hora egreso</span>
         {editando ? (
-          <input
-            type="time"
-            value={borrador.egreso}
-            onChange={(e) => setBorrador({ ...borrador, egreso: e.target.value })}
-            className={INPUT_CLASS}
+          <TimeSelect
+            value={borrador.egreso || null}
+            onChange={(v) => setBorrador({ ...borrador, egreso: v ?? "" })}
+            className="flex-1"
           />
         ) : (
           <span className={`flex-1 text-sm font-medium ${l.egreso ? "text-slate-700" : "text-slate-400"}`}>
@@ -178,7 +174,9 @@ export function LavadoCard({ formacion, registros, editor, onCambio, onEliminar,
   return (
     <article
       className="bg-slate-100/90 rounded-xl shadow-sm border border-slate-200 overflow-hidden cursor-pointer select-none transition-shadow hover:shadow-md"
-      onClick={() => setAbierto((a) => !a)}
+      onClick={() => {
+        if (editandoId === null && !agregando) setAbierto((a) => !a)
+      }}
     >
       <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-orange-50 via-orange-100 to-amber-100 border-b border-slate-200">
         <div className="flex items-center gap-3">
@@ -291,20 +289,18 @@ export function LavadoCard({ formacion, registros, editor, onCambio, onEliminar,
           </p>
           <div className="flex items-center justify-between gap-3">
             <span className="text-xs text-slate-500 w-28 shrink-0">Hora ingreso</span>
-            <input
-              type="time"
-              value={nuevo.ingreso}
-              onChange={(e) => setNuevo((n) => ({ ...n, ingreso: e.target.value }))}
-              className={INPUT_CLASS}
+            <TimeSelect
+              value={nuevo.ingreso || null}
+              onChange={(v) => setNuevo((n) => ({ ...n, ingreso: v ?? "" }))}
+              className="flex-1"
             />
           </div>
           <div className="flex items-center justify-between gap-3">
             <span className="text-xs text-slate-500 w-28 shrink-0">Hora egreso</span>
-            <input
-              type="time"
-              value={nuevo.egreso}
-              onChange={(e) => setNuevo((n) => ({ ...n, egreso: e.target.value }))}
-              className={INPUT_CLASS}
+            <TimeSelect
+              value={nuevo.egreso || null}
+              onChange={(v) => setNuevo((n) => ({ ...n, egreso: v ?? "" }))}
+              className="flex-1"
             />
           </div>
           <div className="flex gap-2 pt-1">

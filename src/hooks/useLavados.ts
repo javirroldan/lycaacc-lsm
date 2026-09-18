@@ -45,7 +45,12 @@ export function useLavados() {
           .single()
         if (err) continue
         const real = data as LavadoDB
-        setLavados((prev) => prev.map((l) => (l.id === op.registroId ? (real as Lavado) : l)))
+        setLavados((prev) =>
+          ordenarPorReciente([
+            real as Lavado,
+            ...prev.filter((l) => l.id !== op.registroId && l.id !== (real as Lavado).id),
+          ]),
+        )
         await removeOp(op.id)
       } else if (op.tipo === "delete") {
         const { error: err } = await insforge.database
@@ -100,7 +105,7 @@ export function useLavados() {
         if (existe) {
           return prev.map((l) => (l.id === nuevo.id ? (nuevo as Lavado) : l))
         }
-        return ordenarPorReciente([...prev, nuevo as Lavado])
+        return ordenarPorReciente([nuevo as Lavado, ...prev.filter((l) => l.id !== nuevo.id)])
       })
     }
 

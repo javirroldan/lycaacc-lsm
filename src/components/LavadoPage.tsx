@@ -4,6 +4,7 @@ import { LavadoCard } from "./LavadoCard"
 import { SyncBadge } from "./SyncBadge"
 import { InformeButton } from "./InformeButton"
 import { DropdownSelect } from "./DropdownSelect"
+import { TimeSelect } from "./TimeSelect"
 import type { useLavados } from "../hooks/useLavados"
 import type { Lavado } from "../lib/typesLavado"
 import { FORMACIONES_LAVADO } from "../lib/typesLavado"
@@ -145,22 +146,24 @@ export function LavadoPage({ datos, esEditor, rol, ahora, onSalir }: Props) {
 
               <label className="block">
                 <span className="text-xs text-slate-500">Hora ingreso</span>
-                <input
-                  type="time"
-                  value={form.ingreso}
-                  onChange={(e) => setForm((f) => ({ ...f, ingreso: e.target.value }))}
-                  className="w-full mt-1 px-2 py-1.5 rounded-lg border border-slate-200 text-sm bg-white text-slate-700 focus:border-orange-500 outline-none"
-                />
+                <div className="mt-1">
+                  <TimeSelect
+                    value={form.ingreso || null}
+                    onChange={(v) => setForm((f) => ({ ...f, ingreso: v ?? "" }))}
+                    className="w-full"
+                  />
+                </div>
               </label>
 
               <label className="block">
                 <span className="text-xs text-slate-500">Hora egreso</span>
-                <input
-                  type="time"
-                  value={form.egreso}
-                  onChange={(e) => setForm((f) => ({ ...f, egreso: e.target.value }))}
-                  className="w-full mt-1 px-2 py-1.5 rounded-lg border border-slate-200 text-sm bg-white text-slate-700 focus:border-orange-500 outline-none"
-                />
+                <div className="mt-1">
+                  <TimeSelect
+                    value={form.egreso || null}
+                    onChange={(v) => setForm((f) => ({ ...f, egreso: v ?? "" }))}
+                    className="w-full"
+                  />
+                </div>
               </label>
             </div>
 

@@ -65,9 +65,10 @@ Variables de entorno:
 - **Eliminar** limpia el contenido de la formación (fechas, estado a `fuera-servicio` y descripción); no borra la fila. Ahora pide **doble confirmación** con un `ConfirmModal` del color de la sección (**azul** en Formaciones, **naranja** en Lavado).
 - **Descripción/detalle** editable por admin; el **empleado** la ve (solo lectura) arriba de la línea de situación.
 - **Locomotoras**: la card muestra último lavado, días sin lavar, semáforo por criticidad (verde 0-15, amarillo 16-20, rojo 21+), servicio (Local / LD), situación (En servicio / Detenida) y descripción.
-- **Lavado**: tarjetas acumulativas por formación (1–23, solo las que tienen ≥ 1 registro), clicables en toda la card. Colapsada muestra el **último lavado** con la etiqueta y el valor **en la misma línea** y la fecha de carga; al tocarla se expande con el **historial completo** (scroll interno, más reciente primero) donde el admin puede **Editar / Eliminar** cada registro y, al pie, usar el botón **Agregar** (que solo aparece al expandir la card). La fila "Lavado" muestra **OK** en verde, **Pendiente** en ámbar y **Sin datos** en gris.
+- **Lavado**: tarjetas acumulativas por formación (1–23, solo las que tienen ≥ 1 registro), clicables en toda la card. Colapsada muestra el **último lavado** con la etiqueta y el valor **en la misma línea** y la fecha de carga; al tocarla se expande con el **historial completo** (scroll interno, más reciente primero) donde el admin puede **Editar / Eliminar** cada registro y, al pie, usar el botón **Agregar** (que solo aparece al expandir la card). Mientras está abierto el formulario de nuevo lavado o una edición, tocar la card (incluidos los campos de hora) **no la colapsa ni cancela** la carga. La fila "Lavado" muestra **OK** en verde, **Pendiente** en ámbar y **Sin datos** en gris.
 - **Alta de lavado** (**solo admin**): **Formación** + horas de ingreso/egreso; `pasadas=2` y `ok=true` se completan en automático (`PASADAS_DEFAULT` / `OK_DEFAULT`). El botón "+ Agregar lavado" (ancho completo de la card, entre el header y las tarjetas) solo lista las formaciones que todavía no tienen tarjeta; si todas ya tienen, se muestra un aviso y se usa el botón "Agregar" de cada tarjeta.
 - **Selector de Formación propio** (`DropdownSelect`): renderizado por portal a `document.body` con **scroll interno**, ancho del campo, abre hacia abajo (o arriba si no hay espacio) y no se desborda en móvil (reemplaza el `<select>` nativo que se cortaba). Cierra tocando afuera, con `Escape` o scrolleando la página (no al scrollear dentro del panel).
+- **Selector de hora propio** (`TimeSelect`): por portal a `document.body`, con columnas **Hora** (00–23) y **Minuto** (00–59) con scroll propio, la selección actual marcada y auto-scroll; abre hacia abajo (o arriba si no hay espacio) para que el menú nunca salga de la pantalla (el `<input type="time">` nativo se cortaba). Cierra tocando afuera, con `Escape` o al scrollear la página, y tiene opción **Limpiar**. Se usa en toda la sección Lavado (alta y edición de registros).
 - **Realtime**: empleados y admin ven los cambios en vivo entre dispositivos (en las tres secciones). Lavado usa el canal `lavados` con eventos `lavado:changed` / `lavado:deleted` vía trigger `notificar_cambio_lavado`.
 - **Tarjetas informativas clicables**: los botones de `Limpieza`, `Reparación` y `Fuera de servicio` abren una ventana flotante (modal) que enumera las formaciones en ese estado (número, fechas y días de demora), útil para que los empleados sepan cuáles son. Las clicables se distinguen visualmente de las que solo muestran contador con un borde de marca y una sombra más marcada.
 - **Orden por criticidad**: más días de demora arriba; las "fuera de servicio" (sin datos) abajo, separadas en su grupo.
@@ -140,7 +141,8 @@ src/
     LocomotoraPage.tsx      Página Locomotoras: header, stats, tarjetas e
                             informe PDF verde
     LavadoPage.tsx          Página Lavado: agrupa por formación, alta con
-                            DropdownSelect + horas, informe PDF naranja
+                            DropdownSelect + TimeSelect (horas), informe PDF
+                            naranja
     FormationCard.tsx       Tarjeta de formación (gris claro translúcido):
                             clicable en admin para revelar Editar/Eliminar/
                             Guardar, modo edición, descripción y ConfirmModal azul
@@ -150,7 +152,8 @@ src/
     LavadoCard.tsx          Tarjeta de lavado acumulativa y clicable en toda
                             la card: último lavado + fecha de carga, historial
                             con scroll (Editar/Eliminar), Agregar al pie solo
-                            al expandir y ConfirmModal naranja
+                            al expandir, TimeSelect para horas, ConfirmModal
+                            naranja; la edición/alta no colapsa la card
     StatsCards.tsx          Contadores verdes/amarillos/rojos y por estado;
                             las tarjetas clicables llevan borde + sombra
     LocomotoraStats.tsx     Contadores por criticidad y situación de locomotoras
@@ -164,6 +167,9 @@ src/
     DropdownSelect.tsx      Desplegable propio por portal: scroll interno,
                             abre hacia abajo/arriba, cierra tocando afuera /
                             Escape / scroll de la página
+    TimeSelect.tsx          Selector de hora propio por portal: columnas
+                            Hora/Minuto con scroll, abre abajo/arriba según
+                            espacio, opción Limpiar y cierre por fuera/Escape
     InformeButton.tsx       Botón "Informe PDF" (solo admin) por sección;
                             abre DateRangeModal y descarga/comparte el PDF
     SyncBadge.tsx           Indicador online / pendientes / sincronizando
