@@ -170,11 +170,10 @@ src/
 public/
   trenes.jpg                Imagen de fondo (redimensionada desde
                             San-Martin-Trenes.jpg)
-  favicon.png               Favicon (generado desde icon_PyC.jpeg)
+  favicon.png               Favicon
   icons/                    Iconos de la PWA y del menú flotante
                             (formacion24px.png, locomotora24px.png,
                             rodillolavado24px.png, icon-192.png, icon-512.png)
-icon_PyC.jpeg               Fuente del icono de la app (logo de la marca)
 scripts/
   sync-backup.mjs           Sincroniza formaciones desde backuotrenes.json
                             (usa INSFORGE_API_KEY)

@@ -10,8 +10,7 @@
     "preview": "vite preview",
     "sync": "node scripts/sync-backup.mjs",
     "setup:admin": "node scripts/setup-admin.mjs",
-    "setup:cuentas": "node scripts/setup-cuentas.mjs",
-    "presentacion": "node scripts/exportar-presentacion.mjs"
+    "setup:cuentas": "node scripts/setup-cuentas.mjs"
   },
   "dependencies": {
     "@insforge/sdk": "^1.5.2",

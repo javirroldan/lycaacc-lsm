@@ -23,3 +23,6 @@ dist-ssr
 .roo
 .trae
 .windsurf
+
+# Archivos no necesarios de comitear (repuestos, notas, material)
+No-comitear/
