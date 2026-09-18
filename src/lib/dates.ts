@@ -22,6 +22,32 @@ export function toInputValue(iso: string | null): string {
   return `${d.getUTCFullYear()}-${mm}-${dd}`
 }
 
+export function fechaHoy(): string {
+  const d = new Date()
+  const dd = String(d.getDate()).padStart(2, "0")
+  const mm = String(d.getMonth() + 1).padStart(2, "0")
+  return `${d.getFullYear()}-${mm}-${dd}`
+}
+
+export function toFechaKey(v: string | null | undefined): string | null {
+  if (!v) return null
+  const m = /^(\d{4}-\d{2}-\d{2})/.exec(v)
+  if (m) return m[1]
+  const d = parseISO(v)
+  if (!d) return null
+  const a = String(d.getUTCFullYear()).padStart(4, "0")
+  const mm = String(d.getUTCMonth() + 1).padStart(2, "0")
+  const dd = String(d.getUTCDate()).padStart(2, "0")
+  return `${a}-${mm}-${dd}`
+}
+
+export function fmtFechaLavado(v: string | null | undefined): string {
+  const k = toFechaKey(v)
+  if (!k) return ""
+  const [, mm, dd] = k.split("-")
+  return `${dd}/${mm}/${k.slice(0, 4)}`
+}
+
 export function calcularDias(ultima: string | null): number | null {
   const fecha = parseISO(ultima)
   if (!fecha) return null

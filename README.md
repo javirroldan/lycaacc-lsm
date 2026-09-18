@@ -5,7 +5,7 @@ Webapp móvil (PWA) para la planificación y control de servicios de lavado de f
 Tres secciones navegables desde el **menú flotante** inferior (orden: **Formaciones · Locomotoras · Lavado**):
 - **Formaciones**: planificación y control de servicios de lavado de formaciones.
 - **Locomotoras**: días sin lavado de las locomotoras, con su propio semáforo por criticidad.
-- **Lavado**: lavado automático por formación: tarjetas que acumulan **N lavados** (horarios, pasadas y resultado).
+- **Lavado**: lavado automático por formación: tarjetas que acumulan **N lavados** (fecha, horarios, pasadas y resultado).
 
 - **Admin**: edita fechas, estado y descripción en Formaciones/Locomotoras y carga/edita/elimina lavados. Login con **usuario + contraseña** (no hay registro público).
 - **Empleado**: acceso en solo lectura, sin login; los cambios del admin se ven en vivo. No tiene acceso a los informes PDF.
@@ -65,16 +65,17 @@ Variables de entorno:
 - **Eliminar** limpia el contenido de la formación (fechas, estado a `fuera-servicio` y descripción); no borra la fila. Ahora pide **doble confirmación** con un `ConfirmModal` del color de la sección (**azul** en Formaciones, **naranja** en Lavado).
 - **Descripción/detalle** editable por admin; el **empleado** la ve (solo lectura) arriba de la línea de situación.
 - **Locomotoras**: la card muestra último lavado, días sin lavar, semáforo por criticidad (verde 0-15, amarillo 16-20, rojo 21+), servicio (Local / LD), situación (En servicio / Detenida) y descripción.
-- **Lavado**: estadísticas clicables arriba de las tarjetas (**Registros**, **Formaciones**, **Sin lavados**) que abren un modal de detalle (`LavadoInfoModal`). Debajo, tarjetas acumulativas por formación (1–23, solo las que tienen ≥ 1 registro), clicables en toda la card. Colapsada muestra el **último lavado** con la etiqueta y el valor **en la misma línea** y la fecha de carga; al tocarla se expande con el **historial completo** (scroll interno, más reciente primero) donde el admin puede **Editar / Eliminar** cada registro (editar solo modifica las **horas ingreso/egreso**; `pasadas` y OK quedan fijos) y, al pie, usar el botón **Agregar** (que solo aparece al expandir la card). Mientras está abierto el formulario de nuevo lavado o una edición, tocar la card (incluidos los campos de hora) **no la colapsa ni cancela** la carga. La fila "Lavado" muestra **OK** en verde, **Pendiente** en ámbar y **Sin datos** en gris.
-- **Alta de lavado** (**solo admin**): **Formación** + horas de ingreso/egreso; `pasadas=2` y `ok=true` se completan en automático (`PASADAS_DEFAULT` / `OK_DEFAULT`). El botón "+ Agregar lavado" (ancho completo de la card, entre el header y las tarjetas) solo lista las formaciones que todavía no tienen tarjeta; si todas ya tienen, se muestra un aviso y se usa el botón "Agregar" de cada tarjeta.
+- **Lavado**: estadísticas clicables arriba de las tarjetas (**Registros**, **Formaciones**, **Sin lavados**) que abren un modal de detalle (`LavadoInfoModal`). Debajo, tarjetas acumulativas por formación (1–23, solo las que tienen ≥ 1 registro), clicables en toda la card. Colapsada muestra el **último lavado** con la etiqueta y el valor **en la misma línea** y su **fecha del lavado**; al tocarla se expande con el **historial completo** (scroll interno, más reciente primero por **fecha del lavado**) donde el admin puede **Editar / Eliminar** cada registro (editar modifica **fecha del lavado** y **horas ingreso/egreso**; `pasadas` y OK quedan fijos) y, al pie, usar el botón **Agregar** (que solo aparece al expandir la card). Mientras está abierto el formulario de nuevo lavado o una edición, tocar la card (incluidos los campos de fecha y hora) **no la colapsa ni cancela** la carga. La fila "Lavado" muestra **OK** en verde, **Pendiente** en ámbar y **Sin datos** en gris.
+- **Alta de lavado** (**solo admin**): **Formación** + **fecha del lavado** + horas de ingreso/egreso; `pasadas=2` y `ok=true` se completan en automático (`PASADAS_DEFAULT` / `OK_DEFAULT`). La fecha permite **cargar registros pasados** (por defecto "hoy" y sin fechas futuras). El botón "+ Agregar lavado" (ancho completo de la card, entre el header y las tarjetas) solo lista las formaciones que todavía no tienen tarjeta; si todas ya tienen, se muestra un aviso y se usa el botón "Agregar" de cada tarjeta.
 - **Selector de Formación propio** (`DropdownSelect`): renderizado por portal a `document.body` con **scroll interno**, ancho del campo, abre hacia abajo (o arriba si no hay espacio) y no se desborda en móvil (reemplaza el `<select>` nativo que se cortaba). Cierra tocando afuera, con `Escape` o scrolleando la página (no al scrollear dentro del panel).
 - **Selector de hora propio** (`TimeSelect`): por portal a `document.body`, con columnas **Hora** (00–23) y **Minuto** (00–59) con scroll propio, la selección actual marcada y auto-scroll; abre hacia abajo (o arriba si no hay espacio) para que el menú nunca salga de la pantalla (el `<input type="time">` nativo se cortaba). Cierra tocando afuera, con `Escape` o al scrollear la página, y tiene opción **Limpiar**. Se usa en toda la sección Lavado (alta y edición de registros).
+- **Calendario propio** (`DateSelect`): por portal a `document.body`, calendario mensual naranja para elegir la **fecha del lavado**; navegación de mes, **días futuros deshabilitados**, botón **Hoy** y opción **Limpiar**. Abre hacia abajo (o arriba si no hay espacio) y cierra tocando afuera, con `Escape` o al scrollear la página. Permite **cargar y editar lavados de días pasados**. Se usa en la alta, en el "Agregar" de cada tarjeta y en la edición de cada registro.
 - **Realtime**: empleados y admin ven los cambios en vivo entre dispositivos (en las tres secciones). Lavado usa el canal `lavados` con eventos `lavado:changed` / `lavado:deleted` vía trigger `notificar_cambio_lavado`.
 - **Tarjetas informativas clicables**: los botones de `Limpieza`, `Reparación` y `Fuera de servicio` (Formaciones) abren un modal azul que enumera las formaciones en ese estado; el indicador `Locomotoras` (En servicio / Detenidas) abre un modal verde; y las tarjetas de Lavado (**Registros** / **Formaciones** / **Sin lavados**) abren un modal naranja que lista los registros de lavado, las formaciones con tarjeta y las formaciones 1–23 sin registros respectivamente. Útil para que los empleados sepan el detalle de cada grupo.
 - **Orden por criticidad**: más días de demora arriba; las "fuera de servicio" (sin datos) abajo, separadas en su grupo.
 - Solo se muestran **tarjetas** (se eliminó la vista de tabla / el toggle).
 - Semáforo: verde 0-15 días, amarillo 16-20, rojo 21+ (los días y el semáforo se **calculan en el cliente** a partir de `ultima`). El día de ingreso cuenta **0 días** y se muestra como **"Hoy"** (la formación que entró ayer muestra **1 día**). Los días se calculan con **UTC** para que la fecha de ingreso (`ultima`) no se desplace por la zona horaria del dispositivo.
-- **Informes PDF por sección** (**solo admin**): botón "Informe PDF" en cada sección (Formaciones **azul**, Locomotoras **verde**, Lavado **naranja**) que abre un modal de **rango de fechas** (`DateRangeModal`) con **Desde / Hasta**; si quedan vacíos se genera el informe completo. Filtra los datos por fecha (último lavado `ultima` en Formaciones/Locomotoras, `created_at` en Lavado) y el PDF agrega la línea **"Período: desde — hasta"** debajo de la fecha de generación, con el resumen y las tablas de los datos filtrados. Compatible con `navigator.share` y fallback a descarga.
+- **Informes PDF por sección** (**solo admin**): botón "Informe PDF" en cada sección (Formaciones **azul**, Locomotoras **verde**, Lavado **naranja**) que abre un modal de **rango de fechas** (`DateRangeModal`) con **Desde / Hasta**; si quedan vacíos se genera el informe completo. Filtra los datos por fecha (último lavado `ultima` en Formaciones/Locomotoras, `fecha` del lavado en Lavado) y el PDF agrega la línea **"Período: desde — hasta"** debajo de la fecha de generación, con el resumen y las tablas de los datos filtrados. Compatible con `navigator.share` y fallback a descarga.
 - **Modales centrados (por portal)**: `ConfirmModal`, `DateRangeModal`, `InfoModal`, `LocomotoraInfoModal` y `LavadoInfoModal` se renderizan con `createPortal(..., document.body)` para que queden **siempre centrados en la pantalla** (los headers usan `backdrop-blur`, que atrapaba los `position: fixed` y los dejaba cortados en móvil).
 - Color de marca **`#0952E2`** (azul) en toda la UI; verde para Locomotoras y naranja para Lavado.
 - PWA instalable con **icono propio**, scroll oculto, header con efecto **glass** y fondo fijo con foto `trenes.jpg` (configurado con `background-image` + `background-attachment: fixed` en `body`, para que no se redimensione al scrollear). Barra de estado del teléfono en tono oscuro (`#0a0e1a`).
@@ -118,12 +119,15 @@ src/
     typesLocomotoras.ts     Tipos: ServicioLocomotora, EstadoLocomotora,
                             LocomotoraDB, Locomotora, CamposEditablesLocomotora
     typesLavado.ts          Tipos de Lavado: LavadoDB/Lavado, NuevoLavado
-                            (solo formacion/ingreso/egreso), PASADAS_DEFAULT=2,
-                            OK_DEFAULT=true, FORMACIONES_LAVADO (1–23), okLabel
+                            (formacion/fecha/ingreso/egreso), PASADAS_DEFAULT=2,
+                            OK_DEFAULT=true, FORMACIONES_LAVADO (1–23), okLabel,
+                            claveOrdenLavado y ordenarPorRecienteLavado
+                            (ordena por fecha del lavado, fallback a created_at)
     temas.ts                TemaColor ("azul" | "verde" | "naranja") y TEMAS
                             con clases de header/botón/foco por sección
     dates.ts                parse/fmt de fechas, calcularDias, semaforo,
-                            ordenarPorCriticidad
+                            ordenarPorCriticidad; fechaHoy, toFechaKey y
+                            fmtFechaLavado (fecha de lavado en "YYYY-MM-DD")
     datesLocomotoras.ts     semaforoLoco y ordenarPorCriticidadLoco (locomotoras)
     offline.ts              Cola de operaciones pendientes en IndexedDB
                             (formaciones, locomotoras y lavados; soporta
@@ -141,8 +145,8 @@ src/
     LocomotoraPage.tsx      Página Locomotoras: header, stats, tarjetas e
                             informe PDF verde
     LavadoPage.tsx          Página Lavado: stats clicables, agrupa por
-                            formación, alta con DropdownSelect + TimeSelect
-                            (horas), informe PDF naranja
+                            formación, alta con DropdownSelect + DateSelect +
+                            TimeSelect (fecha y horas), informe PDF naranja
     FormationCard.tsx       Tarjeta de formación (gris claro translúcido):
                             clicable en admin para revelar Editar/Eliminar/
                             Guardar, modo edición, descripción y ConfirmModal azul
@@ -150,11 +154,11 @@ src/
                             lavar, servicio, situación, descripción; clicable
                             en admin para revelar Editar/Cancelar/Guardar
     LavadoCard.tsx          Tarjeta de lavado acumulativa y clicable en toda
-                            la card: último lavado + fecha de carga, historial
-                            con scroll (Editar/Eliminar), Agregar al pie solo
-                            al expandir, TimeSelect para horas, ConfirmModal
-                            naranja; la edición (solo horas) / alta no colapsa
-                            la card
+                            la card: último lavado + fecha del lavado, historial
+                            con scroll (Editar/Eliminar, incluye fecha), Agregar
+                            al pie solo al expandir, DateSelect + TimeSelect
+                            para fecha y horas, ConfirmModal naranja; la
+                            edición / alta no colapsa la card
     StatsCards.tsx          Contadores verdes/amarillos/rojos y por estado;
                             las tarjetas clicables llevan borde + sombra
     LocomotoraStats.tsx     Contadores por criticidad y situación de locomotoras
@@ -177,6 +181,9 @@ src/
     TimeSelect.tsx          Selector de hora propio por portal: columnas
                             Hora/Minuto con scroll, abre abajo/arriba según
                             espacio, opción Limpiar y cierre por fuera/Escape
+    DateSelect.tsx          Calendario propio por portal (naranja) para la
+                            fecha del lavado: navegación de mes, días futuros
+                            deshabilitados, botón Hoy y cierre por fuera/Escape
     InformeButton.tsx       Botón "Informe PDF" (solo admin) por sección;
                             abre DateRangeModal y descarga/comparte el PDF
     SyncBadge.tsx           Indicador online / pendientes / sincronizando
@@ -196,10 +203,13 @@ migrations/
   20260912101500_init.sql   Esquema + RLS + functions + grants + triggers
                             Realtime (InsForge)
   20260912101601_seed.sql   Seed base (23 formaciones + 26 locomotoras)
-  20260918120000_lavados.sql Tabla lavados, trigger realtime 'lavados', RLS
-                            con es_editor() y seed inicial
+20260918120000_lavados.sql Tabla lavados, trigger realtime 'lavados', RLS
+                             con es_editor() y seed inicial
   20260918150000_seed-lavados.sql  Seed multi-registro de lavados demo
-                            (formaciones 1, 4, 8, 13, 20)
+                             (formaciones 1, 4, 8, 13, 20)
+  20260918201226_lavados-fecha.sql Columna fecha (date) en lavados: el día
+                             en que se realizó el lavado (permite cargar
+                             registros pasados); backfill desde created_at
 ```
 
 ### Flujo de datos
@@ -207,14 +217,14 @@ migrations/
 1. **Admin edita** una tarjeta → entra en modo edición y toca **Guardar** → `FormationCard.guardar` / `LocomotoraCard.guardar` → `onCambio` → `aplicarCambio` (`useFormaciones.ts` / `useLocomotoras.ts`). **Eliminar** llama a `aplicarCambio` con fechas/estado/descripción en blanco (con `ConfirmModal` de por medio).
 2. `aplicarCambio` actualiza el estado al instante, lo encola en **IndexedDB** (`offline.ts`, con la tabla correspondiente) y, si hay red, hace `.update()` a InsForge.
 3. Los triggers `notificar_cambio_formacion` / `notificar_cambio_locomotora` publican el cambio con `realtime.publish` en los canales `formaciones` (evento `formacion:changed`/`formacion:deleted`) y `locomotoras` (`locomotora:changed`/`locomotora:deleted`) → todos los clientes suscritos (admin y empleados) reciben el payload y rederivan `dias`/semáforo.
-4. **Lavado**: `LavadoPage`/`LavadoCard` llaman a `agregarLavado` / `aplicarCambio` / `eliminarLavado` de `useLavados`. El alta recibe solo `{ formacion, ingreso, egreso }` y el hook inserta `pasadas=2` y `ok=true` (`PASADAS_DEFAULT` / `OK_DEFAULT`). El trigger `notificar_cambio_lavado` publica en el canal `lavados` (`lavado:changed` / `lavado:deleted`) y los clientes reordenan/agrupan las tarjetas en vivo, más reciente primero.
+4. **Lavado**: `LavadoPage`/`LavadoCard` llaman a `agregarLavado` / `aplicarCambio` / `eliminarLavado` de `useLavados`. El alta recibe `{ formacion, fecha, ingreso, egreso }` y el hook inserta `pasadas=2` y `ok=true` (`PASADAS_DEFAULT` / `OK_DEFAULT`). El trigger `notificar_cambio_lavado` publica en el canal `lavados` (`lavado:changed` / `lavado:deleted`) y los clientes reordenan/agrupan las tarjetas en vivo por **fecha del lavado**, más reciente primero.
 5. **Vista como empleado**: el `select` está abierto a todos (`RLS using(true)`); el `update/insert/delete` requiere rol `admin`/`editor` (`public.es_editor()`), igual en `lavados`. Los triggers `log_cambio` (formaciones) y `log_cambio_locomotora` (locomotoras) auditan los cambios en `historial` / `historial_locomotoras`.
 
 ### Base de datos
 
 - `public.formaciones`: `id`, `formacion` (único), `anteultima` (date), `ultima` (date), `estado` (`activa | limpieza | reparacion | fuera-servicio`), `descripcion` (text), `updated_at`. `dias` y `sem` NO se guardan: se calculan en el cliente.
 - `public.locomotoras`: `id`, `locomotora` (único), `servicio` (`local | ld`), `ultima` (date), `estado` (`en-servicio | detenida`), `descripcion` (text), `updated_at`. `dias` y `sem` NO se guardan: se calculan en el cliente.
-- `public.lavados`: `id`, `formacion` (int, 1–23), `ingreso` / `egreso` (time), `pasadas` (int ≥ 0), `ok` (bool), `created_at` (timestamptz). El alta siempre crea `pasadas=2` y `ok=true`.
+- `public.lavados`: `id`, `formacion` (int, 1–23), `fecha` (date, día del lavado, default hoy), `ingreso` / `egreso` (time), `pasadas` (int ≥ 0), `ok` (bool), `created_at` (timestamptz, fecha de carga). El alta siempre crea `pasadas=2` y `ok=true`. Sin conexión, el alta offline lleva la `fecha` elegida y sincroniza igual.
 - `public.roles`: `user_id` → `rol` (`admin` | `editor`).
 - `public.historial`: auditoría de cambios de formaciones (`campo`, valor anterior/nuevo, actor).
 - `public.historial_locomotoras`: auditoría de cambios de locomotoras (`campo`, valor anterior/nuevo, actor).
@@ -226,3 +236,4 @@ migrations/
 - El seed de lavados (`20260918150000_seed-lavados.sql`) **reinicia** los registros de ejemplo (formaciones 1, 4, 8, 13 y 20 con 2–3 lavados cada una, `pasadas=2`, `ok=true`). Para probar el historial acumulado, re-cargar ese seed o dar de alta nuevos lavados.
 - Al regenerar la base, el camino es `npx @insforge/cli db migrations up --all` + `npm run sync` con `backuotrenes.json`.
 - El color de la barra de estado del teléfono (theme color) se lee al instalar la PWA; si ya está instalada y se cambió, puede requerir desinstalar y reinstalar para verlo.
+- `lavados.fecha` (día del lavado) se agregó en `20260918201226_lavados-fecha.sql`: los registros existentes tomaron la fecha de su `created_at`. La UI ordena por `fecha` (fallback `created_at` en datos sin fecha) y no permite cargar fechas futuras.

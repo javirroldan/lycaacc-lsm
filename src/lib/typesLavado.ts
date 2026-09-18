@@ -5,19 +5,38 @@ export interface LavadoDB {
   egreso: string | null
   pasadas: number | null
   ok: boolean | null
+  fecha: string | null
   created_at: string
 }
 
 export type Lavado = LavadoDB
 
-export type CamposEditablesLavado = Pick<LavadoDB, "formacion" | "ingreso" | "egreso" | "pasadas" | "ok">
+export type CamposEditablesLavado = Pick<LavadoDB, "formacion" | "fecha" | "ingreso" | "egreso" | "pasadas" | "ok">
 
-// Alta: solo se pasa formacion + fechas; pasadas/ok se completan en automático
+// Alta: solo se pasa formacion + fecha/horas; pasadas/ok se completan en automático
 export interface NuevoLavado {
   formacion: number
+  fecha?: string | null
   ingreso: string | null
   egreso: string | null
 }
+
+export function claveOrdenLavado(l: { fecha: string | null; created_at: string }): string {
+  return toFechaKey(l.fecha) ?? toFechaKey(l.created_at) ?? ""
+}
+
+export function ordenarPorRecienteLavado(lista: Lavado[]): Lavado[] {
+  return [...lista].sort((a, b) => {
+    const ka = claveOrdenLavado(a)
+    const kb = claveOrdenLavado(b)
+    if (ka < kb) return 1
+    if (ka > kb) return -1
+    if (a.created_at !== b.created_at) return a.created_at < b.created_at ? 1 : -1
+    return b.id - a.id
+  })
+}
+
+import { toFechaKey } from "./dates"
 
 export const FORMACIONES_LAVADO: number[] = Array.from({ length: 23 }, (_, i) => i + 1)
 

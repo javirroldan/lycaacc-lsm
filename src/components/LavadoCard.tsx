@@ -1,7 +1,9 @@
 import { useState } from "react"
-import { CalendarDays, ChevronDown, ChevronUp, History, Pencil, Plus, Save, Trash2, X } from "lucide-react"
+import { ChevronDown, ChevronUp, History, Pencil, Plus, Save, Trash2, X } from "lucide-react"
 import { ConfirmModal } from "./ConfirmModal"
 import { TimeSelect } from "./TimeSelect"
+import { DateSelect } from "./DateSelect"
+import { fechaHoy, fmtFechaLavado, toFechaKey } from "../lib/dates"
 import {
   OK_VALOR_CLASS,
   okABoolean,
@@ -23,34 +25,23 @@ interface Props {
 }
 
 interface Borrador {
+  fecha: string
   ingreso: string
   egreso: string
   pasadas: string
   ok: ValorOk
 }
 
-const VACIO_NUEVO = { ingreso: "", egreso: "" }
+function nuevoVacio() {
+  return { fecha: fechaHoy(), ingreso: "", egreso: "" }
+}
+
+function fechaDeLavado(l: Lavado): string {
+  return toFechaKey(l.fecha) ?? toFechaKey(l.created_at) ?? ""
+}
 
 function fmtHM(hora: string | null): string {
   return hora ? hora.slice(0, 5) : ""
-}
-
-function fmtDMY(iso: string | null): string {
-  if (!iso) return ""
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return ""
-  const dd = String(d.getUTCDate()).padStart(2, "0")
-  const mm = String(d.getUTCMonth() + 1).padStart(2, "0")
-  return `${dd}/${mm}/${d.getUTCFullYear()}`
-}
-
-function FilaCargado({ iso }: { iso: string | null }) {
-  return (
-    <div className="flex items-center gap-2 pt-2">
-      <CalendarDays className="w-4 h-4 text-slate-400" />
-      <span className="text-xs text-slate-500">Cargado: {fmtDMY(iso) || "—"}</span>
-    </div>
-  )
 }
 
 function RegistroCuerpo({ l, editando, borrador, setBorrador }: {
@@ -61,6 +52,21 @@ function RegistroCuerpo({ l, editando, borrador, setBorrador }: {
 }) {
   return (
     <div className="space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-xs text-slate-500 w-28 shrink-0">Fecha del lavado</span>
+        {editando ? (
+          <DateSelect
+            value={borrador.fecha || null}
+            onChange={(v) => setBorrador({ ...borrador, fecha: v ?? "" })}
+            className="flex-1"
+          />
+        ) : (
+          <span className={`flex-1 text-sm font-medium ${l.fecha ? "text-slate-700" : "text-slate-400"}`}>
+            {fmtFechaLavado(l.fecha ?? l.created_at) || "—"}
+          </span>
+        )}
+      </div>
+
       <div className="flex items-center justify-between gap-3">
         <span className="text-xs text-slate-500 w-28 shrink-0">Hora ingreso</span>
         {editando ? (
@@ -109,15 +115,16 @@ function RegistroCuerpo({ l, editando, borrador, setBorrador }: {
 export function LavadoCard({ formacion, registros, editor, onCambio, onEliminar, onAgregar }: Props) {
   const [abierto, setAbierto] = useState(false)
   const [editandoId, setEditandoId] = useState<number | null>(null)
-  const [borrador, setBorrador] = useState<Borrador>({ ingreso: "", egreso: "", pasadas: "", ok: "sin" })
+  const [borrador, setBorrador] = useState<Borrador>({ fecha: "", ingreso: "", egreso: "", pasadas: "", ok: "sin" })
   const [agregando, setAgregando] = useState(false)
-  const [nuevo, setNuevo] = useState(VACIO_NUEVO)
+  const [nuevo, setNuevo] = useState(nuevoVacio)
   const [aEliminar, setAEliminar] = useState<Lavado | null>(null)
 
   const ultimo = registros[0]
 
   const entrarEdicion = (l: Lavado) => {
     setBorrador({
+      fecha: fechaDeLavado(l),
       ingreso: l.ingreso ?? "",
       egreso: l.egreso ?? "",
       pasadas: l.pasadas?.toString() ?? "",
@@ -128,6 +135,7 @@ export function LavadoCard({ formacion, registros, editor, onCambio, onEliminar,
 
   const guardar = (l: Lavado) => {
     onCambio(l.id, {
+      fecha: borrador.fecha || null,
       ingreso: borrador.ingreso || null,
       egreso: borrador.egreso || null,
       pasadas: borrador.pasadas === "" ? null : Number(borrador.pasadas),
@@ -137,8 +145,8 @@ export function LavadoCard({ formacion, registros, editor, onCambio, onEliminar,
   }
 
   const guardarNuevo = () => {
-    onAgregar({ formacion, ingreso: nuevo.ingreso || null, egreso: nuevo.egreso || null })
-    setNuevo(VACIO_NUEVO)
+    onAgregar({ formacion, fecha: nuevo.fecha || null, ingreso: nuevo.ingreso || null, egreso: nuevo.egreso || null })
+    setNuevo(nuevoVacio())
     setAgregando(false)
   }
 
@@ -172,7 +180,6 @@ export function LavadoCard({ formacion, registros, editor, onCambio, onEliminar,
         <div className="p-4">
           <p className="text-[11px] uppercase tracking-wide text-slate-400 font-semibold mb-2">Último lavado</p>
           <RegistroCuerpo l={ultimo} editando={false} borrador={borrador} setBorrador={setBorrador} />
-          <FilaCargado iso={ultimo.created_at} />
         </div>
       )}
 
@@ -186,7 +193,6 @@ export function LavadoCard({ formacion, registros, editor, onCambio, onEliminar,
             return (
               <div key={l.id} className={`p-4 ${i > 0 ? "border-t border-slate-200" : ""}`}>
                 <RegistroCuerpo l={l} editando={editando} borrador={borrador} setBorrador={setBorrador} />
-                <FilaCargado iso={l.created_at} />
 
                 {editor && !editando && (
                   <div className="flex gap-2 pt-2">
@@ -259,6 +265,14 @@ export function LavadoCard({ formacion, registros, editor, onCambio, onEliminar,
             Nuevo lavado · Formación N° {formacion}
           </p>
           <div className="flex items-center justify-between gap-3">
+            <span className="text-xs text-slate-500 w-28 shrink-0">Fecha del lavado</span>
+            <DateSelect
+              value={nuevo.fecha || null}
+              onChange={(v) => setNuevo((n) => ({ ...n, fecha: v ?? "" }))}
+              className="flex-1"
+            />
+          </div>
+          <div className="flex items-center justify-between gap-3">
             <span className="text-xs text-slate-500 w-28 shrink-0">Hora ingreso</span>
             <TimeSelect
               value={nuevo.ingreso || null}
@@ -278,7 +292,7 @@ export function LavadoCard({ formacion, registros, editor, onCambio, onEliminar,
             <button
               onClick={(e) => {
                 e.stopPropagation()
-                setNuevo(VACIO_NUEVO)
+                setNuevo(nuevoVacio())
                 setAgregando(false)
               }}
               className="inline-flex items-center justify-center flex-1 px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition cursor-pointer"
@@ -303,8 +317,8 @@ export function LavadoCard({ formacion, registros, editor, onCambio, onEliminar,
         tema="naranja"
         titulo="Eliminar lavado"
         etiquetaConfirmar="Sí, eliminar"
-        mensaje={`Se va a eliminar el registro de lavado de la Formación N° ${formacion} cargado el ${
-          fmtDMY(aEliminar?.created_at ?? null) || "—"
+        mensaje={`Se va a eliminar el registro de lavado de la Formación N° ${formacion} del ${
+          fmtFechaLavado(aEliminar && toFechaKey(aEliminar.fecha ?? aEliminar.created_at)) || "—"
         } (ingreso ${fmtHM(aEliminar?.ingreso ?? null) || "—"} · egreso ${
           fmtHM(aEliminar?.egreso ?? null) || "—"
         }). Esta acción no se puede deshacer.`}

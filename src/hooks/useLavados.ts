@@ -9,14 +9,12 @@ import type {
 } from "../lib/typesLavado"
 import { OK_DEFAULT, PASADAS_DEFAULT } from "../lib/typesLavado"
 import { addOp, getOps, removeOp } from "../lib/offline"
+import { fechaHoy } from "../lib/dates"
+import { ordenarPorRecienteLavado } from "../lib/typesLavado"
 
 const CANAL = "lavados"
 const EVENTO_CAMBIO = "lavado:changed"
 const EVENTO_BORRADO = "lavado:deleted"
-
-function ordenarPorReciente(lista: Lavado[]): Lavado[] {
-  return [...lista].sort((a, b) => (a.created_at < b.created_at ? 1 : a.created_at > b.created_at ? -1 : 0))
-}
 
 export function useLavados() {
   const [lavados, setLavados] = useState<Lavado[]>([])
@@ -46,7 +44,7 @@ export function useLavados() {
         if (err) continue
         const real = data as LavadoDB
         setLavados((prev) =>
-          ordenarPorReciente([
+          ordenarPorRecienteLavado([
             real as Lavado,
             ...prev.filter((l) => l.id !== op.registroId && l.id !== (real as Lavado).id),
           ]),
@@ -80,7 +78,7 @@ export function useLavados() {
     if (err) {
       setError(err.message)
     } else if (data) {
-      setLavados(ordenarPorReciente(data as LavadoDB[]))
+      setLavados(ordenarPorRecienteLavado(data as LavadoDB[]))
     }
     setLoading(false)
   }, [])
@@ -105,7 +103,7 @@ export function useLavados() {
         if (existe) {
           return prev.map((l) => (l.id === nuevo.id ? (nuevo as Lavado) : l))
         }
-        return ordenarPorReciente([nuevo as Lavado, ...prev.filter((l) => l.id !== nuevo.id)])
+        return ordenarPorRecienteLavado([nuevo as Lavado, ...prev.filter((l) => l.id !== nuevo.id)])
       })
     }
 
@@ -148,6 +146,7 @@ export function useLavados() {
     async (campos: NuevoLavado) => {
       const full: CamposEditablesLavado = {
         formacion: campos.formacion,
+        fecha: campos.fecha ?? fechaHoy(),
         ingreso: campos.ingreso,
         egreso: campos.egreso,
         pasadas: PASADAS_DEFAULT,
@@ -155,7 +154,7 @@ export function useLavados() {
       }
       const tempId = -Date.now()
       const temp: Lavado = { ...full, id: tempId, created_at: new Date().toISOString() }
-      setLavados((prev) => ordenarPorReciente([temp, ...prev]))
+      setLavados((prev) => ordenarPorRecienteLavado([temp, ...prev]))
       await addOp("lavados", tempId, full, "insert")
       await refreshPendientes()
       if (navigator.onLine) syncPending()

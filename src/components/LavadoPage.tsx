@@ -4,12 +4,13 @@ import { LavadoCard } from "./LavadoCard"
 import { SyncBadge } from "./SyncBadge"
 import { InformeButton } from "./InformeButton"
 import { DropdownSelect } from "./DropdownSelect"
+import { DateSelect } from "./DateSelect"
 import { TimeSelect } from "./TimeSelect"
 import { LavadoStats, type LavadoDetalleModo } from "./LavadoStats"
 import { LavadoInfoModal } from "./LavadoInfoModal"
 import type { useLavados } from "../hooks/useLavados"
-import type { Lavado } from "../lib/typesLavado"
-import { FORMACIONES_LAVADO } from "../lib/typesLavado"
+import { FORMACIONES_LAVADO, ordenarPorRecienteLavado, type Lavado } from "../lib/typesLavado"
+import { fechaHoy } from "../lib/dates"
 import { insforgeConfigurado } from "../lib/insforge"
 
 export type UseLavadosResult = ReturnType<typeof useLavados>
@@ -22,16 +23,13 @@ interface Props {
   onSalir: () => void
 }
 
-function ordenarReciente(lista: Lavado[]): Lavado[] {
-  return [...lista].sort((a, b) => (a.created_at < b.created_at ? 1 : a.created_at > b.created_at ? -1 : 0))
-}
-
 export function LavadoPage({ datos, esEditor, rol, ahora, onSalir }: Props) {
   const { lavados, loading, error, online, pendientes, aplicarCambio, agregarLavado, eliminarLavado, syncPending } = datos
   const [agregando, setAgregando] = useState(false)
   const [detalle, setDetalle] = useState<LavadoDetalleModo | null>(null)
-  const [form, setForm] = useState<{ formacion: number; ingreso: string; egreso: string }>({
+  const [form, setForm] = useState<{ formacion: number; fecha: string; ingreso: string; egreso: string }>({
     formacion: FORMACIONES_LAVADO[0],
+    fecha: fechaHoy(),
     ingreso: "",
     egreso: "",
   })
@@ -45,7 +43,7 @@ export function LavadoPage({ datos, esEditor, rol, ahora, onSalir }: Props) {
     }
     return [...mapa.keys()]
       .sort((a, b) => a - b)
-      .map((k) => ({ formacion: k, registros: ordenarReciente(mapa.get(k) as Lavado[]) }))
+      .map((k) => ({ formacion: k, registros: ordenarPorRecienteLavado(mapa.get(k) as Lavado[]) }))
   }, [lavados])
 
   const formacionesDisponibles = useMemo(
@@ -54,13 +52,14 @@ export function LavadoPage({ datos, esEditor, rol, ahora, onSalir }: Props) {
   )
 
   const abrirAlta = () => {
-    setForm({ formacion: formacionesDisponibles[0], ingreso: "", egreso: "" })
+    setForm({ formacion: formacionesDisponibles[0], fecha: fechaHoy(), ingreso: "", egreso: "" })
     setAgregando(true)
   }
 
   const enviar = async () => {
     await agregarLavado({
       formacion: form.formacion,
+      fecha: form.fecha || null,
       ingreso: form.ingreso || null,
       egreso: form.egreso || null,
     })
@@ -149,6 +148,17 @@ export function LavadoPage({ datos, esEditor, rol, ahora, onSalir }: Props) {
                     options={formacionesDisponibles.map((n) => ({ value: n, label: `N° ${n}` }))}
                     onChange={(v) => setForm((f) => ({ ...f, formacion: v }))}
                     placeholder="Formación"
+                  />
+                </div>
+              </label>
+
+              <label className="block">
+                <span className="text-xs text-slate-500">Fecha del lavado</span>
+                <div className="mt-1">
+                  <DateSelect
+                    value={form.fecha || null}
+                    onChange={(v) => setForm((f) => ({ ...f, fecha: v ?? "" }))}
+                    className="w-full"
                   />
                 </div>
               </label>

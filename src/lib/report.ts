@@ -1,9 +1,9 @@
 import { jsPDF } from "jspdf"
 import autoTable from "jspdf-autotable"
-import { fmtDMY, parseISO, semaforo } from "./dates"
+import { fmtDMY, fmtFechaLavado, parseISO, semaforo } from "./dates"
 import { ESTADO_LABEL, type Formacion } from "./types"
 import { ESTADO_LOCO_LABEL, SERVICIO_LABEL, type Locomotora } from "./typesLocomotoras"
-import type { Lavado } from "./typesLavado"
+import { ordenarPorRecienteLavado, type Lavado } from "./typesLavado"
 
 export type ColorRGB = [number, number, number]
 
@@ -356,9 +356,9 @@ export async function generarInformeLavados(
 
   const yPie = pieDeInforme(doc, "Informe de lavado", desde, hasta)
 
-  const filtrados = lavados
-    .filter((l) => enRango(l.created_at, desde, hasta))
-    .sort((a, b) => (a.created_at < b.created_at ? 1 : a.created_at > b.created_at ? -1 : 0))
+  const filtrados = ordenarPorRecienteLavado(
+    lavados.filter((l) => enRango(l.fecha ?? l.created_at, desde, hasta)),
+  )
 
   const y1 = resumenLavado(doc, yPie + 2, filtrados)
 
@@ -372,7 +372,7 @@ export async function generarInformeLavados(
       l.egreso ? l.egreso.slice(0, 5) : "-",
       l.pasadas === null ? "-" : String(l.pasadas),
       l.ok === true ? "OK" : l.ok === false ? "Pendiente" : "Sin datos",
-      fmtDMY(l.created_at) || "-",
+      fmtFechaLavado(l.fecha ?? l.created_at) || "-",
     ]),
     theme: "grid",
     headStyles: { fillColor: [...COLOR_NARANJA] as [number, number, number], textColor: 255, fontStyle: "bold" },

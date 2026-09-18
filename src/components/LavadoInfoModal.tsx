@@ -1,7 +1,7 @@
 import { createPortal } from "react-dom"
 import { Ban, ClipboardList, Train, X } from "lucide-react"
-import { fmtDMY } from "../lib/dates"
-import { OK_VALOR_CLASS, okLabel, okValor, type Lavado } from "../lib/typesLavado"
+import { fmtFechaLavado } from "../lib/dates"
+import { OK_VALOR_CLASS, okLabel, okValor, ordenarPorRecienteLavado, type Lavado } from "../lib/typesLavado"
 import type { LavadoDetalleModo } from "./LavadoStats"
 
 interface Props {
@@ -20,7 +20,7 @@ export function LavadoInfoModal({ abierto, modo, registros, formaciones, sinLava
     modo === "registros" ? "Registros de lavado" : modo === "formaciones" ? "Formaciones con lavado" : "Formaciones sin lavado"
   const Icono = modo === "registros" ? ClipboardList : modo === "formaciones" ? Train : Ban
   const total = modo === "registros" ? registros.length : modo === "formaciones" ? formaciones.length : sinLavados.length
-  const listaRegistros = [...registros].sort((a, b) => (a.created_at < b.created_at ? 1 : a.created_at > b.created_at ? -1 : 0))
+  const listaRegistros = ordenarPorRecienteLavado(registros)
 
   return createPortal(
     <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={onCerrar}>
@@ -53,7 +53,7 @@ export function LavadoInfoModal({ abierto, modo, registros, formaciones, sinLava
                       <p className="font-semibold text-slate-700 truncate">
                         Ingreso {l.ingreso?.slice(0, 5) || "—"} → Egreso {l.egreso?.slice(0, 5) || "—"}
                       </p>
-                      <p className="text-slate-500 text-xs">Cargado: {fmtDMY(l.created_at) || "—"}</p>
+                      <p className="text-slate-500 text-xs">Lavado: {fmtFechaLavado(l.fecha ?? l.created_at) || "—"}</p>
                     </div>
                   </div>
                   <span className={`text-xs font-bold shrink-0 ${OK_VALOR_CLASS[okValor(l.ok)]}`}>{okLabel(l.ok)}</span>
