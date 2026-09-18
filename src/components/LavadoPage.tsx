@@ -210,7 +210,9 @@ export function LavadoPage({ datos, esEditor, rol, ahora, onSalir }: Props) {
         ) : (
           <>
             <div className="flex items-center justify-between px-1">
-              <h2 className="text-white font-bold text-sm uppercase tracking-wide">Lavados</h2>
+              <h2 className="text-white font-bold text-sm uppercase tracking-wide">
+                Lavados <span className="opacity-80 font-medium normal-case">({porFormacion.length})</span>
+              </h2>
             </div>
 
             <div className="grid grid-cols-1 gap-3">
