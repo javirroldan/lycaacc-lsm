@@ -87,11 +87,7 @@ export function LavadoPage({ datos, esEditor, rol, ahora, onSalir }: Props) {
           </button>
         </div>
 
-        <div className="flex items-center gap-2 mt-3 flex-wrap">
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-white/20">
-            {esEditor ? "✏️ MODO EDICIÓN" : "👁️ EMPLEADO (SOLO LECTURA)"}
-          </span>
-        </div>
+        <div className="flex items-center gap-2 mt-3 flex-wrap min-h-[26px]"></div>
 
         <div className="mt-3 flex gap-2 flex-wrap items-center">
           {insforgeConfigurado && (
@@ -245,15 +241,7 @@ export function LavadoPage({ datos, esEditor, rol, ahora, onSalir }: Props) {
         )}
       </main>
 
-      <footer className="mt-6 space-y-2">
-        <div className="rounded-xl bg-white px-4 py-3 text-xs text-slate-600 space-y-1.5">
-          <p className="font-semibold uppercase tracking-wide text-slate-500">Leyenda</p>
-          <div className="flex flex-wrap gap-x-4 gap-y-1">
-            <span className="flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-full bg-green-500" /> OK</span>
-            <span className="flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-full bg-orange-400" /> Pendiente</span>
-            <span className="flex items-center gap-1.5"><span className="inline-block w-2.5 h-2.5 rounded-full bg-slate-400" /> Sin datos</span>
-          </div>
-        </div>
+      <footer className="mt-6">
         <p className="text-center text-white/70 text-xs capitalize">Actualizado: {ahora}</p>
       </footer>
 

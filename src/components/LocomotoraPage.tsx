@@ -6,7 +6,7 @@ import { LocomotoraInfoModal } from "./LocomotoraInfoModal"
 import { LocomotoraStats } from "./LocomotoraStats"
 import { SyncBadge } from "./SyncBadge"
 import type { useLocomotoras } from "../hooks/useLocomotoras"
-import { ESTADO_LOCO_LABEL, SERVICIO_LABEL, type EstadoLocomotora } from "../lib/typesLocomotoras"
+import { type EstadoLocomotora } from "../lib/typesLocomotoras"
 import { insforgeConfigurado } from "../lib/insforge"
 
 export type UseLocomotorasResult = ReturnType<typeof useLocomotoras>
@@ -45,8 +45,14 @@ export function LocomotoraPage({ datos, esEditor, rol, ahora, onSalir }: Props) 
         </div>
 
         <div className="flex items-center gap-2 mt-3 flex-wrap">
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-white/20">
-            {esEditor ? "✏️ MODO EDICIÓN" : "👁️ EMPLEADO (SOLO LECTURA)"}
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white/20">
+            <span className="w-2.5 h-2.5 rounded-full bg-green-500" /> Verde: 0-15 días
+          </span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white/20">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-400" /> Amarillo: 16-20 días
+          </span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white/20">
+            <span className="w-2.5 h-2.5 rounded-full bg-red-500" /> Rojo: 21+ días
           </span>
         </div>
 
@@ -97,23 +103,7 @@ export function LocomotoraPage({ datos, esEditor, rol, ahora, onSalir }: Props) 
         )}
       </main>
 
-      <footer className="mt-6 space-y-2">
-        <div className="rounded-xl bg-white px-4 py-3 text-xs text-slate-600 space-y-1.5">
-          <p className="font-semibold uppercase tracking-wide text-slate-500">Leyenda</p>
-          <div className="flex flex-wrap gap-x-4 gap-y-1">
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-green-500 inline-block" /> Verde: 0-15 días</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" /> Amarillo: 16-20 días</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block" /> Rojo: 21+ días</span>
-          </div>
-          <div className="flex flex-wrap gap-x-4 gap-y-1">
-            {Object.entries(ESTADO_LOCO_LABEL).map(([k, v]) => (
-              <span key={k} className="capitalize">{v}</span>
-            ))}
-            {Object.entries(SERVICIO_LABEL).map(([k, v]) => (
-              <span key={k} className="capitalize">{v}</span>
-            ))}
-          </div>
-        </div>
+      <footer className="mt-6">
         <p className="text-center text-white/70 text-xs capitalize">Actualizado: {ahora}</p>
       </footer>
 
