@@ -3,7 +3,6 @@ import { CalendarDays, ChevronDown, ChevronUp, History, Pencil, Plus, Save, Tras
 import { ConfirmModal } from "./ConfirmModal"
 import { TimeSelect } from "./TimeSelect"
 import {
-  OK_OPCIONES,
   OK_VALOR_CLASS,
   okABoolean,
   okLabel,
@@ -13,9 +12,6 @@ import {
   type NuevoLavado,
   type ValorOk,
 } from "../lib/typesLavado"
-
-const INPUT_SM =
-  "w-16 px-2 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-700 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none"
 
 interface Props {
   formacion: number
@@ -98,37 +94,12 @@ function RegistroCuerpo({ l, editando, borrador, setBorrador }: {
       <div className="flex gap-3 pt-1 border-t border-slate-100">
         <div className="flex-1 flex items-center justify-between gap-2">
           <span className="text-xs text-slate-500 shrink-0">Pasadas rodillos</span>
-          {editando ? (
-            <input
-              type="number"
-              min={0}
-              value={borrador.pasadas}
-              onChange={(e) => setBorrador({ ...borrador, pasadas: e.target.value })}
-              placeholder="Cantidad"
-              className={INPUT_SM}
-            />
-          ) : (
-            <span className="text-sm font-semibold text-orange-700">{l.pasadas ?? "—"}</span>
-          )}
+          <span className="text-sm font-semibold text-orange-700">{l.pasadas ?? "—"}</span>
         </div>
         <span className="w-px bg-slate-200" />
         <div className="flex-1 flex items-center justify-between gap-2">
           <span className="text-xs text-slate-500 shrink-0">Lavado</span>
-          {editando ? (
-            <select
-              value={borrador.ok}
-              onChange={(e) => setBorrador({ ...borrador, ok: e.target.value as ValorOk })}
-              className={INPUT_SM}
-            >
-              {OK_OPCIONES.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <span className={`text-sm font-semibold ${OK_VALOR_CLASS[okValor(l.ok)]}`}>{okLabel(l.ok)}</span>
-          )}
+          <span className={`text-sm font-semibold ${OK_VALOR_CLASS[okValor(l.ok)]}`}>{okLabel(l.ok)}</span>
         </div>
       </div>
     </div>
