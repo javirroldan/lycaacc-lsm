@@ -1,14 +1,12 @@
 import { useState } from "react"
-import { LayoutGrid, LogOut, Table2 } from "lucide-react"
+import { LogOut } from "lucide-react"
 import { FormationCard } from "./FormationCard"
-import { FormationTable } from "./FormationTable"
 import { InformeButton } from "./InformeButton"
 import { InfoModal } from "./InfoModal"
 import { StatsCards } from "./StatsCards"
 import { SyncBadge } from "./SyncBadge"
 import type { useFormaciones } from "../hooks/useFormaciones"
 import { ESTADO_LABEL } from "../lib/types"
-import type { Locomotora } from "../lib/typesLocomotoras"
 import { insforgeConfigurado } from "../lib/insforge"
 
 export type UseFormacionesResult = ReturnType<typeof useFormaciones>
@@ -18,13 +16,11 @@ interface Props {
   esEditor: boolean
   rol: "admin" | "editor" | null
   ahora: string
-  locomotoras: Locomotora[]
   onSalir: () => void
 }
 
-export function FormacionesPage({ datos, esEditor, rol, ahora, locomotoras, onSalir }: Props) {
+export function FormacionesPage({ datos, esEditor, rol, ahora, onSalir }: Props) {
   const { formaciones, loading, error, online, pendientes, aplicarCambio, syncPending } = datos
-  const [vista, setVista] = useState<"cards" | "tabla">("cards")
   const [situacion, setSituacion] = useState<"limpieza" | "reparacion" | "fuera-servicio" | null>(null)
 
   const conDatos = formaciones.filter((f) => f.dias !== null)
@@ -64,14 +60,7 @@ export function FormacionesPage({ datos, esEditor, rol, ahora, locomotoras, onSa
         </div>
 
         <div className="mt-3 flex gap-2 flex-wrap">
-          <button
-            onClick={() => setVista((v) => (v === "cards" ? "tabla" : "cards"))}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/15 hover:bg-white/25 transition text-xs font-semibold cursor-pointer"
-          >
-            {vista === "cards" ? <Table2 className="w-4 h-4" /> : <LayoutGrid className="w-4 h-4" />}
-            Vista {vista === "cards" ? "tabla" : "tarjetas"}
-          </button>
-          {esEditor && <InformeButton formaciones={formaciones} locomotoras={locomotoras} />}
+          {esEditor && <InformeButton tipo="formaciones" datos={formaciones} tema="azul" tituloModal="Informe de formaciones" />}
         </div>
       </header>
 
@@ -96,30 +85,26 @@ export function FormacionesPage({ datos, esEditor, rol, ahora, locomotoras, onSa
               </h2>
             </div>
 
-            {vista === "cards" ? (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 gap-3">
-                  {conDatos.map((f) => (
-                    <FormationCard key={f.id} formacion={f} editor={esEditor} onCambio={(id, c) => void aplicarCambio(id, c)} />
-                  ))}
-                </div>
-                {sinDatos.length > 0 && (
-                  <>
-                    <h3 className="px-1 pt-1 text-white/80 font-bold text-xs uppercase tracking-wide flex items-center gap-2">
-                      Fuera de servicio ({sinDatos.length})
-                      <span className="inline-block w-2 h-2 rounded-full bg-slate-400" />
-                    </h3>
-                    <div className="grid grid-cols-1 gap-3">
-                      {sinDatos.map((f) => (
-                        <FormationCard key={f.id} formacion={f} editor={esEditor} onCambio={(id, c) => void aplicarCambio(id, c)} />
-                      ))}
-                    </div>
-                  </>
-                )}
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-3">
+                {conDatos.map((f) => (
+                  <FormationCard key={f.id} formacion={f} editor={esEditor} onCambio={(id, c) => void aplicarCambio(id, c)} />
+                ))}
               </div>
-            ) : (
-              <FormationTable formaciones={formaciones} editor={esEditor} onCambio={(id, c) => void aplicarCambio(id, c)} />
-            )}
+              {sinDatos.length > 0 && (
+                <>
+                  <h3 className="px-1 pt-1 text-white/80 font-bold text-xs uppercase tracking-wide flex items-center gap-2">
+                    Fuera de servicio ({sinDatos.length})
+                    <span className="inline-block w-2 h-2 rounded-full bg-slate-400" />
+                  </h3>
+                  <div className="grid grid-cols-1 gap-3">
+                    {sinDatos.map((f) => (
+                      <FormationCard key={f.id} formacion={f} editor={esEditor} onCambio={(id, c) => void aplicarCambio(id, c)} />
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           </>
         )}
 

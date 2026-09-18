@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { CalendarDays, Pencil, Save, X } from "lucide-react"
+import { CalendarDays, ChevronDown, ChevronUp, Pencil, Save, X } from "lucide-react"
 import { fmtDMY, toInputValue } from "../lib/dates"
 import {
   ESTADO_LOCO_LABEL,
@@ -24,7 +24,7 @@ const ESTADO_STYLE: Record<EstadoLocomotora, string> = {
 }
 
 const INPUT_CLASS =
-  "flex-1 px-2 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-700 focus:border-brand focus:ring-2 focus:ring-brand-mid outline-none"
+  "flex-1 px-2 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-700 focus:border-green-600 focus:ring-2 focus:ring-green-300 outline-none"
 
 interface Props {
   locomotora: Locomotora
@@ -34,6 +34,7 @@ interface Props {
 
 export function LocomotoraCard({ locomotora: l, editor, onCambio }: Props) {
   const sem = SEM_STYLE[l.sem]
+  const [acciones, setAcciones] = useState(false)
   const [editando, setEditando] = useState(false)
   const [borrador, setBorrador] = useState({
     ultima: l.ultima,
@@ -63,10 +64,13 @@ export function LocomotoraCard({ locomotora: l, editor, onCambio }: Props) {
   }
 
   return (
-    <article className="bg-slate-100/90 rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 bg-slate-200/40 border-b border-slate-200">
+    <article
+      className={`bg-slate-100/90 rounded-xl shadow-sm border border-slate-200 overflow-hidden ${editor ? "cursor-pointer select-none" : ""}`}
+      onClick={editor ? () => { if (!editando) setAcciones((a) => !a) } : undefined}
+    >
+      <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-green-50 via-green-100 to-emerald-100 border-b border-slate-200">
         <div className="flex items-center gap-3">
-          <span className="inline-flex items-center justify-center w-11 h-9 rounded-lg bg-brand text-white font-bold text-sm">
+          <span className="inline-flex items-center justify-center w-11 h-9 rounded-lg bg-green-600 text-white font-bold text-sm">
             {l.locomotora}
           </span>
           <div>
@@ -74,10 +78,13 @@ export function LocomotoraCard({ locomotora: l, editor, onCambio }: Props) {
             <p className="font-semibold text-slate-700 leading-none">N° {l.locomotora}</p>
           </div>
         </div>
-        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${sem.badge}`}>
-          <span className={`w-2 h-2 rounded-full ${sem.dot}`} />
-          {sem.texto}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${sem.badge}`}>
+            <span className={`w-2 h-2 rounded-full ${sem.dot}`} />
+            {sem.texto}
+          </span>
+          {editor && (acciones ? <ChevronUp className="w-5 h-5 text-slate-500" /> : <ChevronDown className="w-5 h-5 text-slate-500" />)}
+        </div>
       </div>
 
       <div className="p-4 space-y-3">
@@ -112,7 +119,7 @@ export function LocomotoraCard({ locomotora: l, editor, onCambio }: Props) {
               onChange={(e) => setBorrador((b) => ({ ...b, descripcion: e.target.value }))}
               rows={2}
               placeholder="Agregá un detalle, observación o descripción…"
-              className="w-full px-2 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-700 focus:border-brand focus:ring-2 focus:ring-brand-mid outline-none resize-none"
+              className="w-full px-2 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-700 focus:border-green-600 focus:ring-2 focus:ring-green-300 outline-none resize-none"
             />
           ) : (
             <span className={`text-sm ${l.descripcion ? "text-slate-700" : "text-slate-400 italic"}`}>
@@ -127,7 +134,7 @@ export function LocomotoraCard({ locomotora: l, editor, onCambio }: Props) {
             <select
               value={borrador.servicio}
               onChange={(e) => setBorrador((b) => ({ ...b, servicio: e.target.value as ServicioLocomotora }))}
-              className="flex-1 px-2 py-1.5 rounded-lg border border-slate-200 text-sm font-semibold bg-white focus:border-brand outline-none"
+              className="flex-1 px-2 py-1.5 rounded-lg border border-slate-200 text-sm font-semibold bg-white focus:border-green-600 outline-none"
             >
               {SERVICIOS.map((s) => (
                 <option key={s.value} value={s.value}>
@@ -148,7 +155,7 @@ export function LocomotoraCard({ locomotora: l, editor, onCambio }: Props) {
             <select
               value={borrador.estado}
               onChange={(e) => setBorrador((b) => ({ ...b, estado: e.target.value as EstadoLocomotora }))}
-              className="flex-1 px-2 py-1.5 rounded-lg border border-slate-200 text-sm font-semibold bg-white focus:border-brand outline-none"
+              className="flex-1 px-2 py-1.5 rounded-lg border border-slate-200 text-sm font-semibold bg-white focus:border-green-600 outline-none"
             >
               {ESTADOS_LOCO.map((e) => (
                 <option key={e.value} value={e.value}>
@@ -164,11 +171,14 @@ export function LocomotoraCard({ locomotora: l, editor, onCambio }: Props) {
         </div>
       </div>
 
-      {editor && !editando && (
+      {editor && acciones && !editando && (
         <div className="px-4 py-2.5 border-t border-slate-200">
           <button
-            onClick={entrarEdicion}
-            className="inline-flex items-center gap-1.5 w-full justify-center px-3 py-2 rounded-lg bg-brand text-white text-sm font-semibold hover:bg-brand-strong transition cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation()
+              entrarEdicion()
+            }}
+            className="inline-flex items-center gap-1.5 w-full justify-center px-3 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition cursor-pointer"
           >
             <Pencil className="w-4 h-4" /> Editar
           </button>
@@ -178,14 +188,20 @@ export function LocomotoraCard({ locomotora: l, editor, onCambio }: Props) {
       {editor && editando && (
         <div className="px-4 py-2.5 border-t border-slate-200 flex gap-2">
           <button
-            onClick={() => setEditando(false)}
+            onClick={(e) => {
+              e.stopPropagation()
+              setEditando(false)
+            }}
             className="inline-flex items-center gap-1.5 flex-1 justify-center px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition cursor-pointer"
           >
             <X className="w-4 h-4" /> Cancelar
           </button>
           <button
-            onClick={guardar}
-            className="inline-flex items-center gap-1.5 flex-1 justify-center px-3 py-2 rounded-lg bg-brand text-white text-sm font-semibold hover:bg-brand-strong transition cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation()
+              guardar()
+            }}
+            className="inline-flex items-center gap-1.5 flex-1 justify-center px-3 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition cursor-pointer"
           >
             <Save className="w-4 h-4" /> Guardar
           </button>

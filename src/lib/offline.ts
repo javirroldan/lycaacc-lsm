@@ -1,13 +1,17 @@
 import type { CamposEditables } from "./types"
 import type { CamposEditablesLocomotora } from "./typesLocomotoras"
+import type { CamposEditablesLavado } from "./typesLavado"
 
-export type TablaOp = "formaciones" | "locomotoras"
+export type TablaOp = "formaciones" | "locomotoras" | "lavados"
+
+export type TipoOp = "insert" | "update" | "delete"
 
 export interface PendingOp {
   id: string
   tabla: TablaOp
   registroId: number
-  campos: Partial<CamposEditables> | Partial<CamposEditablesLocomotora>
+  campos: Partial<CamposEditables> | Partial<CamposEditablesLocomotora> | Partial<CamposEditablesLavado>
+  tipo: TipoOp
   ts: number
 }
 
@@ -44,9 +48,10 @@ async function withStore<T>(
 export async function addOp(
   tabla: TablaOp,
   registroId: number,
-  campos: Partial<CamposEditables> | Partial<CamposEditablesLocomotora>,
+  campos: Partial<CamposEditables> | Partial<CamposEditablesLocomotora> | Partial<CamposEditablesLavado>,
+  tipo: TipoOp = "update",
 ): Promise<void> {
-  const full: PendingOp = { tabla, registroId, campos, id: crypto.randomUUID(), ts: Date.now() }
+  const full: PendingOp = { tabla, registroId, campos, tipo, id: crypto.randomUUID(), ts: Date.now() }
   await withStore("readwrite", (s) => s.put(full))
 }
 

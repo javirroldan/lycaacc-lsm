@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react"
-import { TrainFront, Wrench } from "lucide-react"
 import { AuthView, LoadingScreen } from "./components/AuthView"
 import { FloatingNav } from "./components/FloatingNav"
 import { FormacionesPage } from "./components/FormacionesPage"
+import { LavadoPage } from "./components/LavadoPage"
 import { LocomotoraPage } from "./components/LocomotoraPage"
 import { useAuth } from "./hooks/useAuth"
 import { useFormaciones } from "./hooks/useFormaciones"
+import { useLavados } from "./hooks/useLavados"
 import { useLocomotoras } from "./hooks/useLocomotoras"
 import { fechaAhora } from "./lib/dates"
 
-type Pagina = "formaciones" | "locomotoras"
+type Pagina = "formaciones" | "lavado" | "locomotoras"
 
 export default function App() {
   const { usuario, rol, loading: authLoading, iniciarPorCodigo, signOut } = useAuth()
@@ -17,6 +18,7 @@ export default function App() {
   const [ahora, setAhora] = useState(fechaAhora())
 
   const formaciones = useFormaciones()
+  const lavados = useLavados()
   const locomotoras = useLocomotoras()
 
   useEffect(() => {
@@ -46,7 +48,14 @@ export default function App() {
           esEditor={esEditor}
           rol={rol}
           ahora={ahora}
-          locomotoras={locomotoras.locomotoras}
+          onSalir={salir}
+        />
+      ) : pagina === "lavado" ? (
+        <LavadoPage
+          datos={lavados}
+          esEditor={esEditor}
+          rol={rol}
+          ahora={ahora}
           onSalir={salir}
         />
       ) : (
@@ -55,7 +64,6 @@ export default function App() {
           esEditor={esEditor}
           rol={rol}
           ahora={ahora}
-          formaciones={formaciones.formaciones}
           onSalir={salir}
         />
       )}
@@ -66,16 +74,27 @@ export default function App() {
           {
             key: "formaciones",
             label: "Formaciones",
-            icon: TrainFront,
+            icon: <img src="/icons/formacion24px.png" alt="Formaciones" className="h-5 w-5 object-contain" />,
             active: pagina === "formaciones",
             onClick: () => setPagina("formaciones"),
           },
           {
             key: "locomotoras",
             label: "Locomotoras",
-            icon: Wrench,
+            icon: <img src="/icons/locomotora24px.png" alt="Locomotoras" className="h-5 w-5 object-contain" />,
             active: pagina === "locomotoras",
             onClick: () => setPagina("locomotoras"),
+            activeText: "text-green-600",
+            underline: "bg-green-500",
+          },
+          {
+            key: "lavado",
+            label: "Lavado",
+            icon: <img src="/icons/rodillolavado24px.png" alt="Lavado" className="h-5 w-5 object-contain" />,
+            active: pagina === "lavado",
+            onClick: () => setPagina("lavado"),
+            activeText: "text-orange-600",
+            underline: "bg-orange-500",
           },
         ]}
       />

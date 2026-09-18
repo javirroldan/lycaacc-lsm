@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom"
 import { Power, PowerOff, X } from "lucide-react"
 import { fmtDMY } from "../lib/dates"
 import type { EstadoLocomotora, Locomotora } from "../lib/typesLocomotoras"
@@ -17,13 +18,13 @@ export function LocomotoraInfoModal({ abierto, estado, locomotoras, onCerrar }: 
   const titulo = estado === "en-servicio" ? "Locomotoras en Servicio" : "Locomotoras Detenidas"
   const Icono = estado === "en-servicio" ? Power : PowerOff
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={onCerrar}>
       <div
         className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-5 py-4 bg-brand text-white">
+        <div className="flex items-center justify-between px-5 py-4 bg-green-600 text-white">
           <h3 className="flex items-center gap-2 font-bold">
             <Icono className="w-5 h-5" />
             {titulo}
@@ -41,7 +42,7 @@ export function LocomotoraInfoModal({ abierto, estado, locomotoras, onCerrar }: 
               {lista.map((l) => (
                 <li key={l.id} className="flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <span className="inline-flex items-center justify-center w-10 h-8 rounded-lg bg-brand-soft text-brand-strong font-bold text-sm">
+                    <span className="inline-flex items-center justify-center w-10 h-8 rounded-lg bg-green-100 text-green-700 font-bold text-sm">
                       {l.locomotora}
                     </span>
                     <div className="text-sm">
@@ -58,6 +59,7 @@ export function LocomotoraInfoModal({ abierto, estado, locomotoras, onCerrar }: 
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

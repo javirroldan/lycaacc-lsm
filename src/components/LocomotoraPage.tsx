@@ -1,14 +1,12 @@
 import { useState } from "react"
-import { LayoutGrid, LogOut, Table2 } from "lucide-react"
+import { LogOut } from "lucide-react"
 import { InformeButton } from "./InformeButton"
 import { LocomotoraCard } from "./LocomotoraCard"
 import { LocomotoraInfoModal } from "./LocomotoraInfoModal"
 import { LocomotoraStats } from "./LocomotoraStats"
-import { LocomotoraTable } from "./LocomotoraTable"
 import { SyncBadge } from "./SyncBadge"
 import type { useLocomotoras } from "../hooks/useLocomotoras"
 import { ESTADO_LOCO_LABEL, SERVICIO_LABEL, type EstadoLocomotora } from "../lib/typesLocomotoras"
-import type { Formacion } from "../lib/types"
 import { insforgeConfigurado } from "../lib/insforge"
 
 export type UseLocomotorasResult = ReturnType<typeof useLocomotoras>
@@ -18,13 +16,11 @@ interface Props {
   esEditor: boolean
   rol: "admin" | "editor" | null
   ahora: string
-  formaciones: Formacion[]
   onSalir: () => void
 }
 
-export function LocomotoraPage({ datos, esEditor, rol, ahora, formaciones, onSalir }: Props) {
+export function LocomotoraPage({ datos, esEditor, rol, ahora, onSalir }: Props) {
   const { locomotoras, loading, error, online, pendientes, aplicarCambio, syncPending } = datos
-  const [vista, setVista] = useState<"cards" | "tabla">("cards")
   const [estadoModal, setEstadoModal] = useState<EstadoLocomotora | null>(null)
 
   return (
@@ -61,14 +57,7 @@ export function LocomotoraPage({ datos, esEditor, rol, ahora, formaciones, onSal
         </div>
 
         <div className="mt-3 flex gap-2 flex-wrap">
-          <button
-            onClick={() => setVista((v) => (v === "cards" ? "tabla" : "cards"))}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/15 hover:bg-white/25 transition text-xs font-semibold cursor-pointer"
-          >
-            {vista === "cards" ? <Table2 className="w-4 h-4" /> : <LayoutGrid className="w-4 h-4" />}
-            Vista {vista === "cards" ? "tabla" : "tarjetas"}
-          </button>
-          {esEditor && <InformeButton formaciones={formaciones} locomotoras={locomotoras} />}
+          {esEditor && <InformeButton tipo="locomotoras" datos={locomotoras} tema="verde" tituloModal="Informe de locomotoras" />}
         </div>
       </header>
 
@@ -93,16 +82,10 @@ export function LocomotoraPage({ datos, esEditor, rol, ahora, formaciones, onSal
               </h2>
             </div>
 
-            <div className="space-y-4">
-              {vista === "cards" ? (
-                <div className="grid grid-cols-1 gap-3">
-                  {locomotoras.map((l) => (
-                    <LocomotoraCard key={l.id} locomotora={l} editor={esEditor} onCambio={(id, c) => void aplicarCambio(id, c)} />
-                  ))}
-                </div>
-              ) : (
-                <LocomotoraTable locomotoras={locomotoras} editor={esEditor} onCambio={(id, c) => void aplicarCambio(id, c)} />
-              )}
+            <div className="grid grid-cols-1 gap-3">
+              {locomotoras.map((l) => (
+                <LocomotoraCard key={l.id} locomotora={l} editor={esEditor} onCambio={(id, c) => void aplicarCambio(id, c)} />
+              ))}
             </div>
           </>
         )}

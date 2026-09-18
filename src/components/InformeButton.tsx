@@ -1,28 +1,45 @@
 import { useState } from "react"
 import { Download, FileDown, Share2, X } from "lucide-react"
 import type { jsPDF } from "jspdf"
+import { DateRangeModal } from "./DateRangeModal"
+import { TEMAS, type TemaColor } from "../lib/temas"
 import type { Formacion } from "../lib/types"
 import type { Locomotora } from "../lib/typesLocomotoras"
+import type { Lavado } from "../lib/typesLavado"
 
 interface Props {
-  formaciones: Formacion[]
-  locomotoras: Locomotora[]
+  tipo: "formaciones" | "locomotoras" | "lavados"
+  datos: Formacion[] | Locomotora[] | Lavado[]
+  tema: TemaColor
+  tituloModal: string
 }
 
-export function InformeButton({ formaciones, locomotoras }: Props) {
+export function InformeButton({ tipo, datos, tema, tituloModal }: Props) {
+  const [rangoAbierto, setRangoAbierto] = useState(false)
   const [generando, setGenerando] = useState(false)
   const [listo, setListo] = useState<{ doc: jsPDF; nombre: string } | null>(null)
+  const t = TEMAS[tema]
 
-  const generar = async () => {
+  const generar = async (desde?: string, hasta?: string) => {
     setGenerando(true)
     try {
-      const { descargarInformePDF, generarInformePDF, puedeCompartirPDF } = await import("../lib/report")
-      const doc = await generarInformePDF(formaciones, locomotoras)
-      const nombre = `informe-demoras-${new Date().toISOString().slice(0, 10)}`
-      if (puedeCompartirPDF(doc)) {
+      const report = await import("../lib/report")
+      let doc: jsPDF
+      let nombre: string
+      if (tipo === "formaciones") {
+        doc = await report.generarInformeFormaciones(datos as Formacion[], desde, hasta)
+        nombre = `informe-formaciones-${new Date().toISOString().slice(0, 10)}`
+      } else if (tipo === "locomotoras") {
+        doc = await report.generarInformeLocomotoras(datos as Locomotora[], desde, hasta)
+        nombre = `informe-locomotoras-${new Date().toISOString().slice(0, 10)}`
+      } else {
+        doc = await report.generarInformeLavados(datos as Lavado[], desde, hasta)
+        nombre = `informe-lavado-${new Date().toISOString().slice(0, 10)}`
+      }
+      if (report.puedeCompartirPDF(doc)) {
         setListo({ doc, nombre })
       } else {
-        await descargarInformePDF(doc, nombre)
+        await report.descargarInformePDF(doc, nombre)
       }
     } finally {
       setGenerando(false)
@@ -46,26 +63,37 @@ export function InformeButton({ formaciones, locomotoras }: Props) {
   return (
     <>
       <button
-        onClick={() => void generar()}
+        onClick={() => setRangoAbierto(true)}
         disabled={generando}
         className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/15 hover:bg-white/25 transition text-xs font-semibold cursor-pointer disabled:opacity-60"
       >
         <FileDown className="w-4 h-4" /> {generando ? "Generando…" : "Informe PDF"}
       </button>
 
+      <DateRangeModal
+        abierto={rangoAbierto}
+        titulo={tituloModal}
+        tema={tema}
+        onCerrar={() => setRangoAbierto(false)}
+        onGenerar={(desde, hasta) => {
+          setRangoAbierto(false)
+          void generar(desde, hasta)
+        }}
+      />
+
       {listo && (
         <div
-          className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4"
+          className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center p-4"
           onClick={() => setListo(null)}
         >
           <div
             className="bg-white rounded-2xl shadow-2xl w-full max-w-xs overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-5 py-4 bg-brand text-white">
+            <div className={`flex items-center justify-between px-5 py-4 ${t.header}`}>
               <h3 className="flex items-center gap-2 font-bold">
                 <FileDown className="w-5 h-5" />
-                Informe de demoras
+                {tituloModal}
               </h3>
               <button onClick={() => setListo(null)} className="hover:bg-white/20 rounded-lg p-1.5 transition cursor-pointer" aria-label="Cerrar">
                 <X className="w-5 h-5" />
@@ -75,7 +103,7 @@ export function InformeButton({ formaciones, locomotoras }: Props) {
             <div className="p-4 space-y-2">
               <button
                 onClick={() => void descargar()}
-                className="inline-flex items-center justify-center gap-2 w-full px-3 py-3 rounded-lg bg-brand text-white text-sm font-semibold hover:bg-brand-strong transition cursor-pointer"
+                className={`inline-flex items-center justify-center gap-2 w-full px-3 py-3 rounded-lg text-sm font-semibold transition cursor-pointer ${t.boton}`}
               >
                 <Download className="w-5 h-5" /> Descargar al teléfono
               </button>

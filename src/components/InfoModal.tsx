@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom"
 import { X, Factory, Wrench, XCircle } from "lucide-react"
 import { fmtDMY } from "../lib/dates"
 import type { Formacion } from "../lib/types"
@@ -22,7 +23,7 @@ export function InfoModal({ abierto, estado, formaciones, onCerrar }: Props) {
         : "Formaciones en Fuera de servicio"
   const Icono = estado === "limpieza" ? Factory : estado === "reparacion" ? Wrench : XCircle
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={onCerrar}>
       <div
         className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-hidden flex flex-col"
@@ -63,6 +64,7 @@ export function InfoModal({ abierto, estado, formaciones, onCerrar }: Props) {
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
