@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { ChevronDown, ChevronUp, History, Pencil, Plus, Save, Trash2, X } from "lucide-react"
+import { Check, ChevronDown, ChevronUp, History, Pencil, Plus, Save, Trash2, X } from "lucide-react"
 import { ConfirmModal } from "./ConfirmModal"
 import { TimeSelect } from "./TimeSelect"
 import { DateSelect } from "./DateSelect"
@@ -114,6 +114,7 @@ function RegistroCuerpo({ l, editando, borrador, setBorrador }: {
 
 export function LavadoCard({ formacion, registros, editor, onCambio, onEliminar, onAgregar }: Props) {
   const [abierto, setAbierto] = useState(false)
+  const [modoEdicion, setModoEdicion] = useState(false)
   const [editandoId, setEditandoId] = useState<number | null>(null)
   const [borrador, setBorrador] = useState<Borrador>({ fecha: "", ingreso: "", egreso: "", pasadas: "", ok: "sin" })
   const [agregando, setAgregando] = useState(false)
@@ -154,7 +155,7 @@ export function LavadoCard({ formacion, registros, editor, onCambio, onEliminar,
     <article
       className="bg-slate-100/90 rounded-xl shadow-sm border border-slate-200 overflow-hidden cursor-pointer select-none transition-shadow hover:shadow-md"
       onClick={() => {
-        if (editandoId === null && !agregando) setAbierto((a) => !a)
+        if (editandoId === null && !agregando && !modoEdicion) setAbierto((a) => !a)
       }}
     >
       <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-orange-50 via-orange-100 to-amber-100 border-b border-slate-200">
@@ -194,7 +195,7 @@ export function LavadoCard({ formacion, registros, editor, onCambio, onEliminar,
               <div key={l.id} className={`p-4 ${i > 0 ? "border-t border-slate-200" : ""}`}>
                 <RegistroCuerpo l={l} editando={editando} borrador={borrador} setBorrador={setBorrador} />
 
-                {editor && !editando && (
+                {editor && modoEdicion && !editando && (
                   <div className="flex gap-2 pt-2">
                     <button
                       onClick={(e) => {
@@ -246,13 +247,28 @@ export function LavadoCard({ formacion, registros, editor, onCambio, onEliminar,
       )}
 
       {abierto && editor && !agregando && (
-        <div className="px-4 py-2.5 border-t border-slate-200">
+        <div className="px-4 py-2.5 border-t border-slate-200 flex gap-2">
           <button
             onClick={(e) => {
               e.stopPropagation()
+              if (modoEdicion) {
+                setEditandoId(null)
+                setModoEdicion(false)
+              } else {
+                setModoEdicion(true)
+              }
+            }}
+            className="inline-flex items-center gap-1.5 flex-1 justify-center px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition cursor-pointer"
+          >
+            {modoEdicion ? <Check className="w-4 h-4" /> : <Pencil className="w-4 h-4" />} {modoEdicion ? "Listo" : "Editar card"}
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              setNuevo(nuevoVacio())
               setAgregando(true)
             }}
-            className="inline-flex items-center gap-1.5 w-full justify-center px-3 py-2 rounded-lg bg-orange-600 text-white text-sm font-semibold hover:bg-orange-700 transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 flex-1 justify-center px-3 py-2 rounded-lg bg-orange-600 text-white text-sm font-semibold hover:bg-orange-700 transition cursor-pointer"
           >
             <Plus className="w-4 h-4" /> Agregar
           </button>
