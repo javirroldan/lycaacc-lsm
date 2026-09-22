@@ -2,8 +2,14 @@ import { jsPDF } from "jspdf"
 import autoTable from "jspdf-autotable"
 import { fmtDMY, fmtFechaLavado, parseISO, semaforo } from "./dates"
 import { ESTADO_LABEL, type Formacion } from "./types"
-import { ESTADO_LOCO_LABEL, SERVICIO_LABEL, type Locomotora } from "./typesLocomotoras"
+import {
+  ESTADO_LOCO_LABEL,
+  SERVICIO_LABEL,
+  type Locomotora,
+  type ServicioLocomotora as TipoServicioLocomotora,
+} from "./typesLocomotoras"
 import { ordenarPorRecienteLavado, type Lavado } from "./typesLavado"
+import { type SituacionFormacion, type SituacionLocomotora } from "./typesServicios"
 
 export type ColorRGB = [number, number, number]
 
@@ -265,6 +271,59 @@ function ordenadasPorDias<T extends { dias: number | null }>(lista: T[]): T[] {
   })
 }
 
+function contarLavados(lista: { fecha: string }[], desde?: string, hasta?: string): number {
+  return lista.filter((s) => enRango(s.fecha, desde, hasta)).length
+}
+
+interface FilaAcumuladoFormacion {
+  formacion: number
+  fecha: string
+  situacion: SituacionFormacion
+}
+
+function filasAcumuladoFormaciones(formaciones: Formacion[], desde?: string, hasta?: string): FilaAcumuladoFormacion[] {
+  const filas: FilaAcumuladoFormacion[] = []
+  for (const f of formaciones) {
+    for (const s of f.historial) {
+      if (!enRango(s.fecha, desde, hasta)) continue
+      filas.push({ formacion: f.formacion, fecha: s.fecha, situacion: s.situacion })
+    }
+  }
+  filas.sort((a, b) => {
+    if (a.formacion !== b.formacion) return a.formacion - b.formacion
+    if (a.fecha !== b.fecha) return a.fecha < b.fecha ? 1 : -1
+    return 0
+  })
+  return filas
+}
+
+interface FilaAcumuladoLocomotora {
+  locomotora: string
+  fecha: string
+  situacion: SituacionLocomotora
+  servicio: TipoServicioLocomotora
+}
+
+function filasAcumuladoLocomotoras(locomotoras: Locomotora[], desde?: string, hasta?: string): FilaAcumuladoLocomotora[] {
+  const filas: FilaAcumuladoLocomotora[] = []
+  for (const l of locomotoras) {
+    for (const s of l.historial) {
+      if (!enRango(s.fecha, desde, hasta)) continue
+      filas.push({ locomotora: l.locomotora, fecha: s.fecha, situacion: s.situacion, servicio: s.servicio })
+    }
+  }
+  filas.sort((a, b) => {
+    if (a.locomotora !== b.locomotora) return a.locomotora < b.locomotora ? -1 : 1
+    if (a.fecha !== b.fecha) return a.fecha < b.fecha ? 1 : -1
+    return 0
+  })
+  return filas
+}
+
+function finalYDe(doc: jsPDF, porDefecto: number): number {
+  return (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? porDefecto
+}
+
 export async function generarInformeFormaciones(
   formaciones: Formacion[],
   desde?: string,
@@ -285,10 +344,10 @@ export async function generarInformeFormaciones(
   doc.setTextColor(...TEXTO)
   autoTable(doc, {
     startY: seccionTitulo(doc, y1, `Formaciones (${filtradas.length})`, COLOR_AZUL),
-    head: [["N°", "Anteúltima", "Última", "Días", "Estado", "Situación"]],
+    head: [["N°", "N° lavados", "Última", "Días", "Estado", "Situación"]],
     body: ordenadas.map((f) => [
       String(f.formacion),
-      fmtDMY(f.anteultima) || "-",
+      String(contarLavados(f.historial, desde, hasta)),
       fmtDMY(f.ultima) || "-",
       textoDias(f.dias),
       ESTADO_LABEL[f.estado],
@@ -297,10 +356,29 @@ export async function generarInformeFormaciones(
     theme: "grid",
     headStyles: { fillColor: [...COLOR_AZUL] as [number, number, number], textColor: 255, fontStyle: "bold" },
     styles: { fontSize: 9, cellPadding: 1.8, textColor: TEXTO as unknown as [number, number, number] },
-    columnStyles: { 3: { halign: "center" }, 4: {}, 5: {} },
+    columnStyles: { 1: { halign: "center" }, 3: { halign: "center" }, 4: {}, 5: {} },
     margin: { left: 14, right: 14 },
     pageBreak: "auto",
   })
+
+  const acumuladas = filasAcumuladoFormaciones(formaciones, desde, hasta)
+  if (acumuladas.length > 0) {
+    autoTable(doc, {
+      startY: seccionTitulo(doc, finalYDe(doc, y1) + 9, `Acumulado de lavados (${acumuladas.length})`, COLOR_AZUL),
+      head: [["N°", "Fecha", "Situación"]],
+      body: acumuladas.map((r) => [
+        String(r.formacion),
+        fmtFechaLavado(r.fecha) || "-",
+        ESTADO_LABEL[r.situacion],
+      ]),
+      theme: "grid",
+      headStyles: { fillColor: [...COLOR_AZUL] as [number, number, number], textColor: 255, fontStyle: "bold" },
+      styles: { fontSize: 9, cellPadding: 1.8, textColor: TEXTO as unknown as [number, number, number] },
+      columnStyles: { 0: { halign: "center" }, 2: {} },
+      margin: { left: 14, right: 14 },
+      pageBreak: "auto",
+    })
+  }
 
   return doc
 }
@@ -325,10 +403,11 @@ export async function generarInformeLocomotoras(
   doc.setTextColor(...TEXTO)
   autoTable(doc, {
     startY: seccionTitulo(doc, y1, `Locomotoras (${filtradas.length})`, COLOR_VERDE) + 2,
-    head: [["Locomotora", "Servicio", "Último lavado", "Días", "Estado", "Situación"]],
+    head: [["Locomotora", "Servicio", "N° lavados", "Último lavado", "Días", "Estado", "Situación"]],
     body: ordenadas.map((l) => [
       l.locomotora,
       SERVICIO_LABEL[l.servicio],
+      String(contarLavados(l.historial, desde, hasta)),
       fmtDMY(l.ultima) || "-",
       textoDias(l.dias),
       ESTADO_LOCO_LABEL[l.estado],
@@ -337,9 +416,30 @@ export async function generarInformeLocomotoras(
     theme: "grid",
     headStyles: { fillColor: [...COLOR_VERDE] as [number, number, number], textColor: 255, fontStyle: "bold" },
     styles: { fontSize: 9, cellPadding: 1.8, textColor: TEXTO as unknown as [number, number, number] },
+    columnStyles: { 2: { halign: "center" }, 4: { halign: "center" } },
     margin: { left: 14, right: 14 },
     pageBreak: "auto",
   })
+
+  const acumuladas = filasAcumuladoLocomotoras(locomotoras, desde, hasta)
+  if (acumuladas.length > 0) {
+    autoTable(doc, {
+      startY: seccionTitulo(doc, finalYDe(doc, y1) + 9, `Acumulado de lavados (${acumuladas.length})`, COLOR_VERDE),
+      head: [["Locomotora", "Fecha", "Situación", "Servicio"]],
+      body: acumuladas.map((r) => [
+        r.locomotora,
+        fmtFechaLavado(r.fecha) || "-",
+        ESTADO_LOCO_LABEL[r.situacion],
+        SERVICIO_LABEL[r.servicio],
+      ]),
+      theme: "grid",
+      headStyles: { fillColor: [...COLOR_VERDE] as [number, number, number], textColor: 255, fontStyle: "bold" },
+      styles: { fontSize: 9, cellPadding: 1.8, textColor: TEXTO as unknown as [number, number, number] },
+      columnStyles: { 3: { halign: "center" }, 2: {} },
+      margin: { left: 14, right: 14 },
+      pageBreak: "auto",
+    })
+  }
 
   return doc
 }

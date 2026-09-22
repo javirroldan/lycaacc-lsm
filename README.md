@@ -76,7 +76,7 @@ Variables de entorno:
 - **Orden por criticidad**: más días de demora arriba; las "fuera de servicio" (sin datos) abajo, separadas en su grupo.
 - Solo se muestran **tarjetas** (se eliminó la vista de tabla / el toggle).
 - Semáforo: verde 0-15 días, amarillo 16-20, rojo 21+ (los días y el semáforo se **calculan en el cliente** a partir de `ultima`). El día de ingreso cuenta **0 días** y se muestra como **"Hoy"** (la formación que entró ayer muestra **1 día**). Los días se calculan con **UTC** para que la fecha de ingreso (`ultima`) no se desplace por la zona horaria del dispositivo. La **leyenda del semáforo** (chips verde/amarillo/rojo con los rangos) está en el **header** de Formaciones y Locomotoras, en el mismo estilo del header (en Lavado la fila queda vacía con igual alto para no cambiar el tamaño). Se eliminaron la leyenda del pie de página (toda la tarjeta blanca "Leyenda") y el badge de "modo edición / empleado (solo lectura)" de las tres secciones.
-- **Informes PDF por sección** (**solo admin**): botón "Informe PDF" en cada sección (Formaciones **azul**, Locomotoras **verde**, Lavado **naranja**) que abre un modal de **rango de fechas** (`DateRangeModal`) con **Desde / Hasta**; si quedan vacíos se genera el informe completo. Filtra los datos por fecha (último lavado `ultima` en Formaciones/Locomotoras, `fecha` del lavado en Lavado) y el PDF agrega la línea **"Período: desde — hasta"** debajo de la fecha de generación, con el resumen y las tablas de los datos filtrados. Compatible con `navigator.share` y fallback a descarga.
+- **Informes PDF por sección** (**solo admin**): botón "Informe PDF" en cada sección (Formaciones **azul**, Locomotoras **verde**, Lavado **naranja**) que abre un modal de **rango de fechas** (`DateRangeModal`) con **Desde / Hasta**; si quedan vacíos se genera el informe completo. Filtra los datos por fecha y el PDF agrega la línea **"Período: desde — hasta"** debajo de la fecha de generación, con el resumen y las tablas de los datos filtrados. En Formaciones/Locomotoras la tabla resumen muestra **N° lavados** del período (reemplaza a `Anteúltima`) y, debajo, una tabla **"Acumulado de lavados (N)"** con una fila por lavado del historial dentro del rango (N°, fecha y situación; + servicio en Locomotoras); el resumen filtra por último lavado (`ultima`) y el acumulado por **fecha de cada lavado**. El informe de Lavado filtra por `fecha` del lavado. Compatible con `navigator.share` y fallback a descarga.
 - **Modales centrados (por portal)**: `ConfirmModal`, `DateRangeModal`, `InfoModal`, `LocomotoraInfoModal` y `LavadoInfoModal` se renderizan con `createPortal(..., document.body)` para que queden **siempre centrados en la pantalla** (los headers usan `backdrop-blur`, que atrapaba los `position: fixed` y los dejaba cortados en móvil).
 - Color de marca **`#0952E2`** (azul) en toda la UI; verde para Locomotoras y naranja para Lavado.
 - PWA instalable con **icono propio**, scroll oculto, header con efecto **glass** y fondo fijo con foto `trenes.jpg` (configurado con `background-image` + `background-attachment: fixed` en `body`, para que no se redimensione al scrollear). Barra de estado del teléfono en tono oscuro (`#0a0e1a`).
@@ -144,7 +144,9 @@ src/
                             servicios_formaciones/locomotoras; soporta
                             insert/update/delete)
     report.ts               Generadores de PDF por sección con rango de fechas
-                            y línea "Período" (jspdf + jspdf-autotable),
+                            y línea "Período" (jspdf + jspdf-autotable).
+                            Formaciones/Locomotoras: tabla resumen con N° lavados
+                            + tabla "Acumulado de lavados" (historial del rango);
                             descarga y share
   components/
     AuthView.tsx            Login usuario/contraseña, "Ver como empleado",
