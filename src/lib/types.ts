@@ -1,3 +1,5 @@
+import type { ServicioFormacion } from "./typesServicios"
+
 export type Estado = "activa" | "limpieza" | "reparacion" | "fuera-servicio"
 
 export interface FormacionDB {
@@ -15,6 +17,7 @@ export type SemColor = "verde" | "amarillo" | "rojo" | "sin"
 export interface Formacion extends FormacionDB {
   dias: number | null
   sem: SemColor
+  historial: ServicioFormacion[]
 }
 
 export type CamposEditables = Pick<FormacionDB, "anteultima" | "ultima" | "estado" | "descripcion">

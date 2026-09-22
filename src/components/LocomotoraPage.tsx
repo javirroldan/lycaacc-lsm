@@ -20,7 +20,7 @@ interface Props {
 }
 
 export function LocomotoraPage({ datos, esEditor, rol, ahora, onSalir }: Props) {
-  const { locomotoras, loading, error, online, pendientes, aplicarCambio, syncPending } = datos
+  const { locomotoras, loading, error, online, pendientes, aplicarCambio, agregarServicio, aplicarCambioServicio, eliminarServicio, syncPending } = datos
   const [estadoModal, setEstadoModal] = useState<EstadoLocomotora | null>(null)
 
   return (
@@ -90,7 +90,15 @@ export function LocomotoraPage({ datos, esEditor, rol, ahora, onSalir }: Props) 
 
             <div className="grid grid-cols-1 gap-3">
               {locomotoras.map((l) => (
-                <LocomotoraCard key={l.id} locomotora={l} editor={esEditor} onCambio={(id, c) => void aplicarCambio(id, c)} />
+                <LocomotoraCard
+                  key={l.id}
+                  locomotora={l}
+                  editor={esEditor}
+                  onCambio={(id, c) => void aplicarCambio(id, c)}
+                  onAgregarServicio={(locomotoraId, fecha, situacion, servicio) => void agregarServicio(locomotoraId, fecha, situacion, servicio)}
+                  onCambioServicio={(servicioId, locomotoraId, fecha, situacion, servicio) => void aplicarCambioServicio(servicioId, locomotoraId, fecha, situacion, servicio)}
+                  onEliminarServicio={(servicioId, locomotoraId) => void eliminarServicio(servicioId, locomotoraId)}
+                />
               ))}
             </div>
           </>

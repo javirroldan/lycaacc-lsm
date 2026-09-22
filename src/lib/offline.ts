@@ -1,8 +1,14 @@
 import type { CamposEditables } from "./types"
 import type { CamposEditablesLocomotora } from "./typesLocomotoras"
 import type { CamposEditablesLavado } from "./typesLavado"
+import type {
+  CamposEditablesServicioFormacion,
+  CamposEditablesServicioLocomotora,
+  NuevaServicioFormacion,
+  NuevaServicioLocomotora,
+} from "./typesServicios"
 
-export type TablaOp = "formaciones" | "locomotoras" | "lavados"
+export type TablaOp = "formaciones" | "locomotoras" | "lavados" | "serviciosFormaciones" | "serviciosLocomotoras"
 
 export type TipoOp = "insert" | "update" | "delete"
 
@@ -10,7 +16,14 @@ export interface PendingOp {
   id: string
   tabla: TablaOp
   registroId: number
-  campos: Partial<CamposEditables> | Partial<CamposEditablesLocomotora> | Partial<CamposEditablesLavado>
+  campos:
+    | Partial<CamposEditables>
+    | Partial<CamposEditablesLocomotora>
+    | Partial<CamposEditablesLavado>
+    | Partial<CamposEditablesServicioFormacion>
+    | Partial<CamposEditablesServicioLocomotora>
+    | NuevaServicioFormacion
+    | NuevaServicioLocomotora
   tipo: TipoOp
   ts: number
 }
@@ -48,7 +61,14 @@ async function withStore<T>(
 export async function addOp(
   tabla: TablaOp,
   registroId: number,
-  campos: Partial<CamposEditables> | Partial<CamposEditablesLocomotora> | Partial<CamposEditablesLavado>,
+  campos:
+    | Partial<CamposEditables>
+    | Partial<CamposEditablesLocomotora>
+    | Partial<CamposEditablesLavado>
+    | Partial<CamposEditablesServicioFormacion>
+    | Partial<CamposEditablesServicioLocomotora>
+    | NuevaServicioFormacion
+    | NuevaServicioLocomotora,
   tipo: TipoOp = "update",
 ): Promise<void> {
   const full: PendingOp = { tabla, registroId, campos, tipo, id: crypto.randomUUID(), ts: Date.now() }

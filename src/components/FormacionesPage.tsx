@@ -19,7 +19,7 @@ interface Props {
 }
 
 export function FormacionesPage({ datos, esEditor, rol, ahora, onSalir }: Props) {
-  const { formaciones, loading, error, online, pendientes, aplicarCambio, syncPending } = datos
+  const { formaciones, loading, error, online, pendientes, aplicarCambio, agregarServicio, aplicarCambioServicio, eliminarServicio, syncPending } = datos
   const [situacion, setSituacion] = useState<"limpieza" | "reparacion" | "fuera-servicio" | null>(null)
 
   const conDatos = formaciones.filter((f) => f.dias !== null)
@@ -93,7 +93,15 @@ export function FormacionesPage({ datos, esEditor, rol, ahora, onSalir }: Props)
             <div className="space-y-4">
               <div className="grid grid-cols-1 gap-3">
                 {conDatos.map((f) => (
-                  <FormationCard key={f.id} formacion={f} editor={esEditor} onCambio={(id, c) => void aplicarCambio(id, c)} />
+                  <FormationCard
+                    key={f.id}
+                    formacion={f}
+                    editor={esEditor}
+                    onCambio={(id, c) => void aplicarCambio(id, c)}
+                    onAgregarServicio={(formacionId, fecha, situacion) => void agregarServicio(formacionId, fecha, situacion)}
+                    onCambioServicio={(servicioId, formacionId, fecha, situacion) => void aplicarCambioServicio(servicioId, formacionId, fecha, situacion)}
+                    onEliminarServicio={(servicioId, formacionId) => void eliminarServicio(servicioId, formacionId)}
+                  />
                 ))}
               </div>
               {sinDatos.length > 0 && (
@@ -104,7 +112,15 @@ export function FormacionesPage({ datos, esEditor, rol, ahora, onSalir }: Props)
                   </h3>
                   <div className="grid grid-cols-1 gap-3">
                     {sinDatos.map((f) => (
-                      <FormationCard key={f.id} formacion={f} editor={esEditor} onCambio={(id, c) => void aplicarCambio(id, c)} />
+                      <FormationCard
+                        key={f.id}
+                        formacion={f}
+                        editor={esEditor}
+                        onCambio={(id, c) => void aplicarCambio(id, c)}
+                        onAgregarServicio={(formacionId, fecha, situacion) => void agregarServicio(formacionId, fecha, situacion)}
+                        onCambioServicio={(servicioId, formacionId, fecha, situacion) => void aplicarCambioServicio(servicioId, formacionId, fecha, situacion)}
+                        onEliminarServicio={(servicioId, formacionId) => void eliminarServicio(servicioId, formacionId)}
+                      />
                     ))}
                   </div>
                 </>

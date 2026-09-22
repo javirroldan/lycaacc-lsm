@@ -1,3 +1,5 @@
+import type { ServicioLocomotora as ServicioLocomotoraHistorial } from "./typesServicios"
+
 export type EstadoLocomotora = "en-servicio" | "detenida"
 export type ServicioLocomotora = "local" | "ld"
 
@@ -16,6 +18,7 @@ export type SemColorLocomotora = "verde" | "amarillo" | "rojo" | "sin"
 export interface Locomotora extends LocomotoraDB {
   dias: number | null
   sem: SemColorLocomotora
+  historial: ServicioLocomotoraHistorial[]
 }
 
 export type CamposEditablesLocomotora = Pick<LocomotoraDB, "ultima" | "servicio" | "estado" | "descripcion">
