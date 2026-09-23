@@ -1,15 +1,14 @@
 import { jsPDF } from "jspdf"
-import autoTable from "jspdf-autotable"
+import autoTable, { type CellHookData } from "jspdf-autotable"
 import { fmtDMY, fmtFechaLavado, parseISO, semaforo } from "./dates"
 import { ESTADO_LABEL, type Formacion } from "./types"
 import {
   ESTADO_LOCO_LABEL,
   SERVICIO_LABEL,
   type Locomotora,
-  type ServicioLocomotora as TipoServicioLocomotora,
 } from "./typesLocomotoras"
 import { ordenarPorRecienteLavado, type Lavado } from "./typesLavado"
-import { type SituacionFormacion, type SituacionLocomotora } from "./typesServicios"
+import { ordenarServicios } from "./typesServicios"
 
 export type ColorRGB = [number, number, number]
 
@@ -25,10 +24,6 @@ const MM_POR_PT = 2.8346
 function textoDias(dias: number | null): string {
   if (dias === null) return "-"
   return dias === 0 ? "Hoy" : String(dias)
-}
-
-function textoSituacion(dias: number | null): string {
-  return semaforo(dias).texto
 }
 
 function fechaGeneracion(): string {
@@ -262,66 +257,138 @@ function pieDeInforme(doc: jsPDF, titulo: string, desde?: string, hasta?: string
   return 58
 }
 
-function ordenadasPorDias<T extends { dias: number | null }>(lista: T[]): T[] {
-  return [...lista].sort((a, b) => {
-    if (a.dias !== null && b.dias !== null) return b.dias - a.dias
-    if (a.dias !== null) return -1
-    if (b.dias !== null) return 1
-    return 0
-  })
+interface FilaInforme {
+  body: (string | number)[]
+  nuevo: boolean
+  par: boolean
 }
 
-function contarLavados(lista: { fecha: string }[], desde?: string, hasta?: string): number {
-  return lista.filter((s) => enRango(s.fecha, desde, hasta)).length
+interface FilasInforme {
+  filas: FilaInforme[]
+  totalLavados: number
 }
 
-interface FilaAcumuladoFormacion {
-  formacion: number
-  fecha: string
-  situacion: SituacionFormacion
-}
-
-function filasAcumuladoFormaciones(formaciones: Formacion[], desde?: string, hasta?: string): FilaAcumuladoFormacion[] {
-  const filas: FilaAcumuladoFormacion[] = []
-  for (const f of formaciones) {
-    for (const s of f.historial) {
-      if (!enRango(s.fecha, desde, hasta)) continue
-      filas.push({ formacion: f.formacion, fecha: s.fecha, situacion: s.situacion })
-    }
+function filasFormaciones(formaciones: Formacion[], desde?: string, hasta?: string): FilasInforme {
+  const ordenadas = [...formaciones].sort((a, b) => a.formacion - b.formacion)
+  const filas: FilaInforme[] = []
+  let totalLavados = 0
+  let grupo = 0
+  for (const f of ordenadas) {
+    const enRangoList = f.historial.filter((s) => enRango(s.fecha, desde, hasta))
+    if (enRangoList.length === 0) continue
+    const historial = ordenarServicios(enRangoList)
+    totalLavados += historial.length
+    historial.forEach((s, j) => {
+      filas.push({
+        body: [
+          j === 0 ? String(f.formacion) : "",
+          fmtDMY(s.fecha) || "-",
+          ESTADO_LABEL[s.situacion],
+          j === 0 ? textoDias(f.dias) : "",
+          j === 0 ? ESTADO_LABEL[f.estado] : "",
+        ],
+        nuevo: j === 0,
+        par: grupo % 2 === 1,
+      })
+    })
+    grupo++
   }
-  filas.sort((a, b) => {
-    if (a.formacion !== b.formacion) return a.formacion - b.formacion
-    if (a.fecha !== b.fecha) return a.fecha < b.fecha ? 1 : -1
-    return 0
-  })
-  return filas
+  return { filas, totalLavados }
 }
 
-interface FilaAcumuladoLocomotora {
-  locomotora: string
-  fecha: string
-  situacion: SituacionLocomotora
-  servicio: TipoServicioLocomotora
-}
-
-function filasAcumuladoLocomotoras(locomotoras: Locomotora[], desde?: string, hasta?: string): FilaAcumuladoLocomotora[] {
-  const filas: FilaAcumuladoLocomotora[] = []
-  for (const l of locomotoras) {
-    for (const s of l.historial) {
-      if (!enRango(s.fecha, desde, hasta)) continue
-      filas.push({ locomotora: l.locomotora, fecha: s.fecha, situacion: s.situacion, servicio: s.servicio })
-    }
+function filasLocomotoras(locomotoras: Locomotora[], desde?: string, hasta?: string): FilasInforme {
+  const ordenadas = [...locomotoras].sort((a, b) =>
+    a.locomotora.localeCompare(b.locomotora, "es", { numeric: true, sensitivity: "base" }),
+  )
+  const filas: FilaInforme[] = []
+  let totalLavados = 0
+  let grupo = 0
+  for (const l of ordenadas) {
+    const enRangoList = l.historial.filter((s) => enRango(s.fecha, desde, hasta))
+    if (enRangoList.length === 0) continue
+    const historial = ordenarServicios(enRangoList)
+    totalLavados += historial.length
+    const situacion = semaforo(l.dias).texto
+    historial.forEach((s, j) => {
+      filas.push({
+        body: [
+          j === 0 ? l.locomotora : "",
+          fmtDMY(s.fecha) || "-",
+          SERVICIO_LABEL[s.servicio],
+          j === 0 ? textoDias(l.dias) : "",
+          j === 0 ? ESTADO_LOCO_LABEL[l.estado] : "",
+          situacion,
+        ],
+        nuevo: j === 0,
+        par: grupo % 2 === 1,
+      })
+    })
+    grupo++
   }
-  filas.sort((a, b) => {
-    if (a.locomotora !== b.locomotora) return a.locomotora < b.locomotora ? -1 : 1
-    if (a.fecha !== b.fecha) return a.fecha < b.fecha ? 1 : -1
-    return 0
-  })
-  return filas
+  return { filas, totalLavados }
 }
 
-function finalYDe(doc: jsPDF, porDefecto: number): number {
-  return (doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? porDefecto
+function filasLavados(lavados: Lavado[], desde?: string, hasta?: string): FilasInforme {
+  const porFormacion = new Map<number, Lavado[]>()
+  for (const l of lavados) {
+    if (!enRango(l.fecha ?? l.created_at, desde, hasta)) continue
+    const arr = porFormacion.get(l.formacion)
+    if (arr) arr.push(l)
+    else porFormacion.set(l.formacion, [l])
+  }
+  const formaciones = [...porFormacion.keys()].sort((a, b) => a - b)
+  const filas: FilaInforme[] = []
+  formaciones.forEach((num, grupo) => {
+    const historial = ordenarPorRecienteLavado(porFormacion.get(num) ?? [])
+    historial.forEach((l, j) => {
+      filas.push({
+        body: [
+          j === 0 ? `N° ${num}` : "",
+          fmtFechaLavado(l.fecha ?? l.created_at) || "-",
+          l.ingreso ? l.ingreso.slice(0, 5) : "-",
+          l.egreso ? l.egreso.slice(0, 5) : "-",
+          l.pasadas === null ? "-" : String(l.pasadas),
+          l.ok === true ? "OK" : l.ok === false ? "Pendiente" : "Sin datos",
+        ],
+        nuevo: j === 0,
+        par: grupo % 2 === 1,
+      })
+    })
+  })
+  return { filas, totalLavados: filas.length }
+}
+
+const BLANCO: ColorRGB = [255, 255, 255]
+const COLOR_ALTERNO_AZUL: ColorRGB = [240, 245, 255]
+const COLOR_ALTERNO_VERDE: ColorRGB = [240, 253, 244]
+const COLOR_ALTERNO_NARANJA: ColorRGB = [255, 247, 237]
+
+function didParseGrupo(
+  filas: FilaInforme[],
+  colGrupo: number,
+  colsSoloPrimera: number[],
+  colorAlterno: ColorRGB,
+): (d: CellHookData) => void {
+  return (d) => {
+    if (d.section !== "body") return
+    const fila = filas[d.row.index]
+    if (!fila) return
+    d.cell.styles.fillColor = fila.par ? colorAlterno : BLANCO
+    if (d.column.index === colGrupo) {
+      if (fila.nuevo) d.cell.styles.fontStyle = "bold"
+      else d.cell.text = []
+      return
+    }
+    if (!fila.nuevo && colsSoloPrimera.includes(d.column.index)) d.cell.text = []
+  }
+}
+
+function formacionesEnRango(formaciones: Formacion[], desde?: string, hasta?: string): Formacion[] {
+  return formaciones.filter((f) => f.historial.some((s) => enRango(s.fecha, desde, hasta)))
+}
+
+function locomotorasEnRango(locomotoras: Locomotora[], desde?: string, hasta?: string): Locomotora[] {
+  return locomotoras.filter((l) => l.historial.some((s) => enRango(s.fecha, desde, hasta)))
 }
 
 export async function generarInformeFormaciones(
@@ -336,49 +403,28 @@ export async function generarInformeFormaciones(
 
   const yPie = pieDeInforme(doc, "Informe de formaciones", desde, hasta)
 
-  const filtradas = formaciones.filter((f) => enRango(f.ultima, desde, hasta))
-  const ordenadas = ordenadasPorDias(filtradas)
+  const y1 = resumenSeccion(doc, yPie + 2, "Formaciones", formacionesEnRango(formaciones, desde, hasta))
 
-  const y1 = resumenSeccion(doc, yPie + 2, "Formaciones", filtradas)
+  const { filas, totalLavados } = filasFormaciones(formaciones, desde, hasta)
+  if (filas.length === 0) return doc
 
   doc.setTextColor(...TEXTO)
   autoTable(doc, {
-    startY: seccionTitulo(doc, y1, `Formaciones (${filtradas.length})`, COLOR_AZUL),
-    head: [["N°", "N° lavados", "Última", "Días", "Estado", "Situación"]],
-    body: ordenadas.map((f) => [
-      String(f.formacion),
-      String(contarLavados(f.historial, desde, hasta)),
-      fmtDMY(f.ultima) || "-",
-      textoDias(f.dias),
-      ESTADO_LABEL[f.estado],
-      textoSituacion(f.dias),
-    ]),
+    startY: seccionTitulo(doc, y1, `Lavados por formación (${totalLavados})`, COLOR_AZUL),
+    head: [["N°", "Fecha", "Situación", "Días", "Estado"]],
+    body: filas.map((f) => f.body),
     theme: "grid",
     headStyles: { fillColor: [...COLOR_AZUL] as [number, number, number], textColor: 255, fontStyle: "bold" },
     styles: { fontSize: 9, cellPadding: 1.8, textColor: TEXTO as unknown as [number, number, number] },
-    columnStyles: { 1: { halign: "center" }, 3: { halign: "center" }, 4: {}, 5: {} },
+    columnStyles: {
+      0: { halign: "center", cellWidth: 14 },
+      1: { halign: "center", cellWidth: 26 },
+      3: { halign: "center", cellWidth: 14 },
+    },
     margin: { left: 14, right: 14 },
     pageBreak: "auto",
+    didParseCell: didParseGrupo(filas, 0, [3, 4], COLOR_ALTERNO_AZUL),
   })
-
-  const acumuladas = filasAcumuladoFormaciones(formaciones, desde, hasta)
-  if (acumuladas.length > 0) {
-    autoTable(doc, {
-      startY: seccionTitulo(doc, finalYDe(doc, y1) + 9, `Acumulado de lavados (${acumuladas.length})`, COLOR_AZUL),
-      head: [["N°", "Fecha", "Situación"]],
-      body: acumuladas.map((r) => [
-        String(r.formacion),
-        fmtFechaLavado(r.fecha) || "-",
-        ESTADO_LABEL[r.situacion],
-      ]),
-      theme: "grid",
-      headStyles: { fillColor: [...COLOR_AZUL] as [number, number, number], textColor: 255, fontStyle: "bold" },
-      styles: { fontSize: 9, cellPadding: 1.8, textColor: TEXTO as unknown as [number, number, number] },
-      columnStyles: { 0: { halign: "center" }, 2: {} },
-      margin: { left: 14, right: 14 },
-      pageBreak: "auto",
-    })
-  }
 
   return doc
 }
@@ -395,51 +441,29 @@ export async function generarInformeLocomotoras(
 
   const yPie = pieDeInforme(doc, "Informe de locomotoras", desde, hasta)
 
-  const filtradas = locomotoras.filter((l) => enRango(l.ultima, desde, hasta))
-  const ordenadas = ordenadasPorDias(filtradas)
+  const y1 = resumenSeccion(doc, yPie + 2, "Locomotoras", locomotorasEnRango(locomotoras, desde, hasta))
 
-  const y1 = resumenSeccion(doc, yPie + 2, "Locomotoras", filtradas)
+  const { filas, totalLavados } = filasLocomotoras(locomotoras, desde, hasta)
+  if (filas.length === 0) return doc
 
   doc.setTextColor(...TEXTO)
   autoTable(doc, {
-    startY: seccionTitulo(doc, y1, `Locomotoras (${filtradas.length})`, COLOR_VERDE) + 2,
-    head: [["Locomotora", "Servicio", "N° lavados", "Último lavado", "Días", "Estado", "Situación"]],
-    body: ordenadas.map((l) => [
-      l.locomotora,
-      SERVICIO_LABEL[l.servicio],
-      String(contarLavados(l.historial, desde, hasta)),
-      fmtDMY(l.ultima) || "-",
-      textoDias(l.dias),
-      ESTADO_LOCO_LABEL[l.estado],
-      textoSituacion(l.dias),
-    ]),
+    startY: seccionTitulo(doc, y1, `Lavados por locomotora (${totalLavados})`, COLOR_VERDE) + 2,
+    head: [["Locomotora", "Fecha", "Servicio", "Días", "Estado", "Situación"]],
+    body: filas.map((f) => f.body),
     theme: "grid",
     headStyles: { fillColor: [...COLOR_VERDE] as [number, number, number], textColor: 255, fontStyle: "bold" },
     styles: { fontSize: 9, cellPadding: 1.8, textColor: TEXTO as unknown as [number, number, number] },
-    columnStyles: { 2: { halign: "center" }, 4: { halign: "center" } },
+    columnStyles: {
+      0: { cellWidth: 36 },
+      1: { halign: "center", cellWidth: 26 },
+      2: { halign: "center", cellWidth: 18 },
+      3: { halign: "center", cellWidth: 14 },
+    },
     margin: { left: 14, right: 14 },
     pageBreak: "auto",
+    didParseCell: didParseGrupo(filas, 0, [3, 4], COLOR_ALTERNO_VERDE),
   })
-
-  const acumuladas = filasAcumuladoLocomotoras(locomotoras, desde, hasta)
-  if (acumuladas.length > 0) {
-    autoTable(doc, {
-      startY: seccionTitulo(doc, finalYDe(doc, y1) + 9, `Acumulado de lavados (${acumuladas.length})`, COLOR_VERDE),
-      head: [["Locomotora", "Fecha", "Situación", "Servicio"]],
-      body: acumuladas.map((r) => [
-        r.locomotora,
-        fmtFechaLavado(r.fecha) || "-",
-        ESTADO_LOCO_LABEL[r.situacion],
-        SERVICIO_LABEL[r.servicio],
-      ]),
-      theme: "grid",
-      headStyles: { fillColor: [...COLOR_VERDE] as [number, number, number], textColor: 255, fontStyle: "bold" },
-      styles: { fontSize: 9, cellPadding: 1.8, textColor: TEXTO as unknown as [number, number, number] },
-      columnStyles: { 3: { halign: "center" }, 2: {} },
-      margin: { left: 14, right: 14 },
-      pageBreak: "auto",
-    })
-  }
 
   return doc
 }
@@ -456,30 +480,31 @@ export async function generarInformeLavados(
 
   const yPie = pieDeInforme(doc, "Informe de lavado", desde, hasta)
 
-  const filtrados = ordenarPorRecienteLavado(
-    lavados.filter((l) => enRango(l.fecha ?? l.created_at, desde, hasta)),
-  )
+  const filtrados = lavados.filter((l) => enRango(l.fecha ?? l.created_at, desde, hasta))
 
   const y1 = resumenLavado(doc, yPie + 2, filtrados)
 
+  const { filas, totalLavados } = filasLavados(lavados, desde, hasta)
+  if (filas.length === 0) return doc
+
   doc.setTextColor(...TEXTO)
   autoTable(doc, {
-    startY: seccionTitulo(doc, y1, `Lavados (${filtrados.length})`, COLOR_NARANJA) + 2,
-    head: [["Formación", "Ingreso", "Egreso", "Pasadas", "Lavado", "Fecha"]],
-    body: filtrados.map((l) => [
-      `N° ${l.formacion}`,
-      l.ingreso ? l.ingreso.slice(0, 5) : "-",
-      l.egreso ? l.egreso.slice(0, 5) : "-",
-      l.pasadas === null ? "-" : String(l.pasadas),
-      l.ok === true ? "OK" : l.ok === false ? "Pendiente" : "Sin datos",
-      fmtFechaLavado(l.fecha ?? l.created_at) || "-",
-    ]),
+    startY: seccionTitulo(doc, y1, `Lavados por formación (${totalLavados})`, COLOR_NARANJA) + 2,
+    head: [["Formación", "Fecha", "Ingreso", "Egreso", "Pasadas", "Lavado"]],
+    body: filas.map((f) => f.body),
     theme: "grid",
     headStyles: { fillColor: [...COLOR_NARANJA] as [number, number, number], textColor: 255, fontStyle: "bold" },
     styles: { fontSize: 9, cellPadding: 1.8, textColor: TEXTO as unknown as [number, number, number] },
-    columnStyles: { 2: { halign: "center" }, 3: { halign: "center" }, 4: {}, 5: {} },
+    columnStyles: {
+      0: { halign: "center", cellWidth: 20 },
+      1: { halign: "center", cellWidth: 26 },
+      2: { halign: "center" },
+      3: { halign: "center" },
+      4: { halign: "center" },
+    },
     margin: { left: 14, right: 14 },
     pageBreak: "auto",
+    didParseCell: didParseGrupo(filas, 0, [], COLOR_ALTERNO_NARANJA),
   })
 
   return doc
