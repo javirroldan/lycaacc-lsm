@@ -1,9 +1,10 @@
+import { UMBRAL_AMARILLO, UMBRAL_VERDE } from "./semaforo"
 import type { Locomotora, SemColorLocomotora } from "./typesLocomotoras"
 
 export function semaforoLoco(dias: number | null): SemColorLocomotora {
   if (dias === null) return "sin"
-  if (dias <= 15) return "verde"
-  if (dias <= 20) return "amarillo"
+  if (dias <= UMBRAL_VERDE) return "verde"
+  if (dias <= UMBRAL_AMARILLO) return "amarillo"
   return "rojo"
 }
 

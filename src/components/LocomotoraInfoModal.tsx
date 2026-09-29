@@ -1,6 +1,7 @@
 import { createPortal } from "react-dom"
 import { Power, PowerOff, X } from "lucide-react"
 import { fmtDMY } from "../lib/dates"
+import { colorDias } from "../lib/semaforo"
 import type { EstadoLocomotora, Locomotora } from "../lib/typesLocomotoras"
 
 interface Props {
@@ -50,7 +51,7 @@ export function LocomotoraInfoModal({ abierto, estado, locomotoras, onCerrar }: 
                       <p className="text-slate-400 text-xs">{l.servicio === "ld" ? "Larga Distancia" : "Local"}</p>
                     </div>
                   </div>
-                  <span className={`text-sm font-bold ${l.dias !== null && l.dias > 20 ? "text-red-600" : l.dias !== null && l.dias > 15 ? "text-amber-600" : "text-green-600"}`}>
+                  <span className={`text-sm font-bold ${colorDias(l.dias)}`}>
                     {l.dias === null ? "—" : l.dias === 0 ? "Hoy" : `${l.dias} días`}
                   </span>
                 </li>

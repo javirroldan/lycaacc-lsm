@@ -1,3 +1,4 @@
+import { UMBRAL_AMARILLO, UMBRAL_VERDE } from "./semaforo"
 import type { Formacion, SemColor } from "./types"
 
 export function parseISO(iso: string | null): Date | null {
@@ -61,8 +62,8 @@ export function calcularDias(ultima: string | null): number | null {
 
 export function semaforo(dias: number | null): { sem: SemColor; texto: string } {
   if (dias === null) return { sem: "sin", texto: "Sin datos" }
-  if (dias <= 15) return { sem: "verde", texto: "OK" }
-  if (dias <= 20) return { sem: "amarillo", texto: "Precaución" }
+  if (dias <= UMBRAL_VERDE) return { sem: "verde", texto: "OK" }
+  if (dias <= UMBRAL_AMARILLO) return { sem: "amarillo", texto: "Precaución" }
   return { sem: "rojo", texto: "Crítico" }
 }
 

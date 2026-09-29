@@ -4,6 +4,7 @@ import { ConfirmModal } from "./ConfirmModal"
 import { DateSelect } from "./DateSelect"
 import { SituacionSelect } from "./SituacionSelect"
 import { fmtDMY, fmtFechaLavado } from "../lib/dates"
+import { colorDias } from "../lib/semaforo"
 import { ESTADOS, ESTADO_LABEL, type Estado, type Formacion } from "../lib/types"
 import type { ServicioFormacion, SituacionFormacion } from "../lib/typesServicios"
 
@@ -115,7 +116,7 @@ export function FormationCard({ formacion: f, editor, onCambio, onAgregarServici
         <div className="flex items-center gap-2 pt-1">
           <CalendarDays className="w-4 h-4 text-slate-400" />
           <span className="text-sm text-slate-600">
-            Demora: <strong className={f.dias === null ? "" : f.dias <= 15 ? "text-green-600" : f.dias <= 20 ? "text-amber-600" : "text-red-600"}>{f.dias === null ? "—" : f.dias === 0 ? "Hoy" : `${f.dias} días`}</strong>
+            Demora: <strong className={colorDias(f.dias)}>{f.dias === null ? "—" : f.dias === 0 ? "Hoy" : `${f.dias} días`}</strong>
           </span>
         </div>
 

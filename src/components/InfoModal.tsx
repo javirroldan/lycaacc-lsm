@@ -1,6 +1,7 @@
 import { createPortal } from "react-dom"
 import { X, Factory, Wrench, XCircle } from "lucide-react"
 import { fmtDMY } from "../lib/dates"
+import { colorDias } from "../lib/semaforo"
 import type { Formacion } from "../lib/types"
 
 interface Props {
@@ -55,7 +56,7 @@ export function InfoModal({ abierto, estado, formaciones, onCerrar }: Props) {
                       <p className="text-slate-500 text-xs">Anteúltima: {fmtDMY(f.anteultima) || "—"}</p>
                     </div>
                   </div>
-                  <span className={`text-sm font-bold ${f.dias !== null && f.dias > 20 ? "text-red-600" : f.dias !== null && f.dias > 15 ? "text-amber-600" : "text-green-600"}`}>
+                  <span className={`text-sm font-bold ${colorDias(f.dias)}`}>
                     {f.dias === null ? "—" : f.dias === 0 ? "Hoy" : `${f.dias} días`}
                   </span>
                 </li>

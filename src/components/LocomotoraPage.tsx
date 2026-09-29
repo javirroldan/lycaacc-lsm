@@ -8,6 +8,7 @@ import { SyncBadge } from "./SyncBadge"
 import type { useLocomotoras } from "../hooks/useLocomotoras"
 import { type EstadoLocomotora } from "../lib/typesLocomotoras"
 import { insforgeConfigurado } from "../lib/insforge"
+import { LEYENDA_SEMAFORO } from "../lib/semaforo"
 
 export type UseLocomotorasResult = ReturnType<typeof useLocomotoras>
 
@@ -45,15 +46,14 @@ export function LocomotoraPage({ datos, esEditor, rol, ahora, onSalir }: Props) 
         </div>
 
         <div className="flex items-center gap-2 mt-3 flex-wrap">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white/20">
-            <span className="w-2.5 h-2.5 rounded-full bg-green-500" /> Verde: 0-15 días
-          </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white/20">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-400" /> Amarillo: 16-20 días
-          </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white/20">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-500" /> Rojo: 21+ días
-          </span>
+          {LEYENDA_SEMAFORO.map((item) => (
+            <span
+              key={item.texto}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white/20"
+            >
+              <span className={`w-2.5 h-2.5 rounded-full ${item.color}`} /> {item.texto}
+            </span>
+          ))}
         </div>
 
         <div className="mt-3 flex gap-2 flex-wrap items-center">
