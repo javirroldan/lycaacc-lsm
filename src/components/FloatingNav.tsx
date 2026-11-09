@@ -33,9 +33,16 @@ export function FloatingNav({
     const scroller = scrollRef.current
     const btn = btnRefs.current[activo.key]
     if (!scroller || !btn) return
+    // Si todo entra sin scroll (ej: 3 ítems), no hace falta desplazar
+    if (scroller.scrollWidth <= scroller.clientWidth) {
+      scroller.scrollTo({ left: 0, behavior: "smooth" })
+      return
+    }
     const target = btn.offsetLeft - scroller.clientWidth / 2 + btn.offsetWidth / 2
     scroller.scrollTo({ left: Math.max(0, target), behavior: "smooth" })
   }, [items])
+
+  const pocosItems = items.length <= 4
 
   return (
     <nav
@@ -43,7 +50,7 @@ export function FloatingNav({
     >
       <div
         ref={scrollRef}
-        className="no-scrollbar flex items-center gap-1 h-14 px-2 overflow-x-auto scroll-smooth lg:justify-center"
+        className={`no-scrollbar flex items-center gap-1 h-14 px-2 overflow-x-auto scroll-smooth ${pocosItems ? "justify-center" : "lg:justify-center"}`}
       >
         {items.map((item) => {
           const iconActive = item.activeText ?? activeText
@@ -55,7 +62,7 @@ export function FloatingNav({
               ref={(el) => { btnRefs.current[item.key] = el }}
               onClick={item.onClick}
               aria-label={item.label}
-              className="flex flex-col items-center justify-center gap-0.5 py-1.5 px-2 rounded-xl transition-colors cursor-pointer w-[80px] shrink-0 lg:w-auto lg:flex-1"
+              className={`flex flex-col items-center justify-center gap-0.5 py-1.5 px-2 rounded-xl transition-colors cursor-pointer ${pocosItems ? "flex-1 min-w-[80px]" : "w-[80px] shrink-0 lg:w-auto lg:flex-1"}`}
             >
               <span className={`transition ${item.active ? "" : "grayscale opacity-60"}`}>{item.icon}</span>
               <span className={`text-[10px] font-medium whitespace-nowrap ${cs}`}>{item.label}</span>
