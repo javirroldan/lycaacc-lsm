@@ -97,14 +97,20 @@ export function InformeButton({ tipo, datos, tema, tituloModal, etiqueta = "Info
     }
   }
 
+  const esGgo = etiqueta === "GGO informe"
+
   return (
     <>
       <button
         onClick={() => setRangoAbierto(true)}
         disabled={generando}
-        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/15 hover:bg-white/25 transition text-xs font-semibold cursor-pointer disabled:opacity-60"
+        className={
+          esGgo
+            ? "inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-sky-600 hover:bg-sky-700 text-white shadow-lg shadow-sky-900/30 ring-1 ring-white/40 transition text-sm font-bold cursor-pointer disabled:opacity-60"
+            : "inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/15 hover:bg-white/25 transition text-xs font-semibold cursor-pointer disabled:opacity-60"
+        }
       >
-        <FileDown className="w-4 h-4" /> {generando ? "Generando…" : etiqueta}
+        <FileDown className={esGgo ? "w-5 h-5" : "w-4 h-4"} /> {generando ? "Generando…" : etiqueta}
       </button>
 
       {error && (
