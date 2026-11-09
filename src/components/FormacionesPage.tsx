@@ -14,12 +14,13 @@ export type UseFormacionesResult = ReturnType<typeof useFormaciones>
 interface Props {
   datos: UseFormacionesResult
   esEditor: boolean
-  rol: "admin" | "editor" | null
+  esGerencia: boolean
+  rol: "admin" | "editor" | "gerencia" | null
   ahora: string
   onSalir: () => void
 }
 
-export function FormacionesPage({ datos, esEditor, rol, ahora, onSalir }: Props) {
+export function FormacionesPage({ datos, esEditor, esGerencia, rol, ahora, onSalir }: Props) {
   const { formaciones, loading, error, online, pendientes, aplicarCambio, agregarServicio, aplicarCambioServicio, eliminarServicio, syncPending } = datos
   const [situacion, setSituacion] = useState<"limpieza" | "reparacion" | "fuera-servicio" | null>(null)
 
@@ -64,8 +65,13 @@ export function FormacionesPage({ datos, esEditor, rol, ahora, onSalir }: Props)
           )}
         </div>
 
-        <div className="mt-3 flex gap-2 flex-wrap">
-          {esEditor && <InformeButton tipo="formaciones" datos={formaciones} tema="azul" tituloModal="Informe de formaciones" />}
+        <div className="mt-3 flex gap-2 flex-wrap items-center justify-between">
+          <div className="flex gap-2 flex-wrap">
+            {esEditor && <InformeButton tipo="formaciones" datos={formaciones} tema="azul" tituloModal="Informe de formaciones" />}
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            {esGerencia && <InformeButton tipo="formaciones" datos={formaciones} tema="azul" tituloModal="Informe de formaciones" etiqueta="GGO informe" />}
+          </div>
         </div>
       </header>
 

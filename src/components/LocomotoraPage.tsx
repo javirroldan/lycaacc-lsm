@@ -15,12 +15,13 @@ export type UseLocomotorasResult = ReturnType<typeof useLocomotoras>
 interface Props {
   datos: UseLocomotorasResult
   esEditor: boolean
-  rol: "admin" | "editor" | null
+  esGerencia: boolean
+  rol: "admin" | "editor" | "gerencia" | null
   ahora: string
   onSalir: () => void
 }
 
-export function LocomotoraPage({ datos, esEditor, rol, ahora, onSalir }: Props) {
+export function LocomotoraPage({ datos, esEditor, esGerencia, rol, ahora, onSalir }: Props) {
   const { locomotoras, loading, error, online, pendientes, aplicarCambio, agregarServicio, aplicarCambioServicio, eliminarServicio, syncPending } = datos
   const [estadoModal, setEstadoModal] = useState<EstadoLocomotora | null>(null)
 
@@ -62,8 +63,13 @@ export function LocomotoraPage({ datos, esEditor, rol, ahora, onSalir }: Props) 
           )}
         </div>
 
-        <div className="mt-3 flex gap-2 flex-wrap">
-          {esEditor && <InformeButton tipo="locomotoras" datos={locomotoras} tema="verde" tituloModal="Informe de locomotoras" />}
+        <div className="mt-3 flex gap-2 flex-wrap items-center justify-between">
+          <div className="flex gap-2 flex-wrap">
+            {esEditor && <InformeButton tipo="locomotoras" datos={locomotoras} tema="verde" tituloModal="Informe de locomotoras" />}
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            {esGerencia && <InformeButton tipo="locomotoras" datos={locomotoras} tema="verde" tituloModal="Informe de locomotoras" etiqueta="GGO informe" />}
+          </div>
         </div>
       </header>
 

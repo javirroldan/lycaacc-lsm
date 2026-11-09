@@ -7,7 +7,7 @@ interface Props {
   value: string | null
   onChange: (v: string | null) => void
   className?: string
-  tema?: "azul" | "verde" | "naranja"
+  tema?: "azul" | "verde" | "naranja" | "teal" | "rose" | "violeta"
 }
 
 const PANEL_H = 320
@@ -35,6 +35,27 @@ const TEMAS: Record<Tema, { focusBtn: string; activo: string; hover: string; nav
     hover: "hover:bg-orange-50",
     nav: "hover:bg-orange-50",
     hoy: "text-orange-600 border-orange-200 hover:bg-orange-50",
+  },
+  teal: {
+    focusBtn: "focus:border-teal-500 focus:ring-2 focus:ring-teal-200",
+    activo: "bg-teal-600 text-white font-semibold",
+    hover: "hover:bg-teal-50",
+    nav: "hover:bg-teal-50",
+    hoy: "text-teal-600 border-teal-200 hover:bg-teal-50",
+  },
+  rose: {
+    focusBtn: "focus:border-rose-500 focus:ring-2 focus:ring-rose-200",
+    activo: "bg-rose-600 text-white font-semibold",
+    hover: "hover:bg-rose-50",
+    nav: "hover:bg-rose-50",
+    hoy: "text-rose-600 border-rose-200 hover:bg-rose-50",
+  },
+  violeta: {
+    focusBtn: "focus:border-violet-500 focus:ring-2 focus:ring-violet-200",
+    activo: "bg-violet-600 text-white font-semibold",
+    hover: "hover:bg-violet-50",
+    nav: "hover:bg-violet-50",
+    hoy: "text-violet-600 border-violet-200 hover:bg-violet-50",
   },
 }
 

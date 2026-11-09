@@ -1,4 +1,4 @@
-export type TemaColor = "azul" | "verde" | "naranja"
+export type TemaColor = "azul" | "verde" | "naranja" | "teal" | "rose" | "violeta"
 
 export interface Tema {
   header: string
@@ -29,5 +29,26 @@ export const TEMAS: Record<TemaColor, Tema> = {
     foco: "focus:border-orange-500 focus:ring-2 focus:ring-orange-200",
     textoActivo: "text-orange-600",
     underline: "bg-orange-500",
+  },
+  teal: {
+    header: "bg-teal-600 text-white",
+    boton: "bg-teal-600 text-white hover:bg-teal-700",
+    foco: "focus:border-teal-500 focus:ring-2 focus:ring-teal-200",
+    textoActivo: "text-teal-600",
+    underline: "bg-teal-500",
+  },
+  rose: {
+    header: "bg-rose-600 text-white",
+    boton: "bg-rose-600 text-white hover:bg-rose-700",
+    foco: "focus:border-rose-500 focus:ring-2 focus:ring-rose-200",
+    textoActivo: "text-rose-600",
+    underline: "bg-rose-500",
+  },
+  violeta: {
+    header: "bg-violet-600 text-white",
+    boton: "bg-violet-600 text-white hover:bg-violet-700",
+    foco: "focus:border-violet-500 focus:ring-2 focus:ring-violet-200",
+    textoActivo: "text-violet-600",
+    underline: "bg-violet-500",
   },
 }

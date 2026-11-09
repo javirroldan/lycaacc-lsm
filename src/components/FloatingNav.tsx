@@ -1,4 +1,4 @@
-import type { ReactNode } from "react"
+import { useEffect, useRef, type ReactNode } from "react"
 
 export interface FloatingNavItem {
   key: string
@@ -24,11 +24,27 @@ export function FloatingNav({
   underline = "bg-blue-500",
   className = "",
 }: Props) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const btnRefs = useRef<Record<string, HTMLButtonElement | null>>({})
+
+  useEffect(() => {
+    const activo = items.find((i) => i.active)
+    if (!activo) return
+    const scroller = scrollRef.current
+    const btn = btnRefs.current[activo.key]
+    if (!scroller || !btn) return
+    const target = btn.offsetLeft - scroller.clientWidth / 2 + btn.offsetWidth / 2
+    scroller.scrollTo({ left: Math.max(0, target), behavior: "smooth" })
+  }, [items])
+
   return (
     <nav
       className={`fixed bottom-3 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-4xl rounded-2xl border border-gray-200 bg-white backdrop-blur-lg shadow-lg pb-[env(safe-area-inset-bottom)] ${className}`}
     >
-      <div className="flex items-center justify-around h-14 px-2">
+      <div
+        ref={scrollRef}
+        className="no-scrollbar flex items-center gap-1 h-14 px-2 overflow-x-auto scroll-smooth lg:justify-center"
+      >
         {items.map((item) => {
           const iconActive = item.activeText ?? activeText
           const iconUnderline = item.underline ?? underline
@@ -36,11 +52,13 @@ export function FloatingNav({
           return (
             <button
               key={item.key}
+              ref={(el) => { btnRefs.current[item.key] = el }}
               onClick={item.onClick}
-              className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
+              aria-label={item.label}
+              className="flex flex-col items-center justify-center gap-0.5 py-1.5 px-2 rounded-xl transition-colors cursor-pointer w-[80px] shrink-0 lg:w-auto lg:flex-1"
             >
               <span className={`transition ${item.active ? "" : "grayscale opacity-60"}`}>{item.icon}</span>
-              <span className={`text-[10px] font-medium ${cs}`}>{item.label}</span>
+              <span className={`text-[10px] font-medium whitespace-nowrap ${cs}`}>{item.label}</span>
               {item.active && <span className={`h-0.5 w-6 rounded-full ${iconUnderline}`} />}
             </button>
           )

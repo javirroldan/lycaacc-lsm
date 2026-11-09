@@ -18,12 +18,13 @@ export type UseLavadosResult = ReturnType<typeof useLavados>
 interface Props {
   datos: UseLavadosResult
   esEditor: boolean
-  rol: "admin" | "editor" | null
+  esGerencia: boolean
+  rol: "admin" | "editor" | "gerencia" | null
   ahora: string
   onSalir: () => void
 }
 
-export function LavadoPage({ datos, esEditor, rol, ahora, onSalir }: Props) {
+export function LavadoPage({ datos, esEditor, esGerencia, rol, ahora, onSalir }: Props) {
   const { lavados, loading, error, online, pendientes, aplicarCambio, agregarLavado, eliminarLavado, syncPending } = datos
   const [agregando, setAgregando] = useState(false)
   const [detalle, setDetalle] = useState<LavadoDetalleModo | null>(null)
@@ -95,8 +96,13 @@ export function LavadoPage({ datos, esEditor, rol, ahora, onSalir }: Props) {
           )}
         </div>
 
-        <div className="mt-3 flex gap-2 flex-wrap">
-          {esEditor && <InformeButton tipo="lavados" datos={lavados} tema="naranja" tituloModal="Informe de lavado" />}
+        <div className="mt-3 flex gap-2 flex-wrap items-center justify-between">
+          <div className="flex gap-2 flex-wrap">
+            {esEditor && <InformeButton tipo="lavados" datos={lavados} tema="naranja" tituloModal="Informe de lavado" />}
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            {esGerencia && <InformeButton tipo="lavados" datos={lavados} tema="naranja" tituloModal="Informe de lavado" etiqueta="GGO informe" />}
+          </div>
         </div>
       </header>
 

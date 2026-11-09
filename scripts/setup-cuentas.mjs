@@ -38,6 +38,12 @@ const cuentas = [
     password: env.VITE_EMPLEADO_PASSWORD,
     nombre: "Empleado",
   },
+  {
+    clave: "gerencia",
+    email: env.VITE_GERENCIA_EMAIL ?? "gerencia@trenes.local",
+    password: env.VITE_GERENCIA_PASSWORD,
+    nombre: "Gerencia",
+  },
 ]
 
 if (!url || !apiKey) {
@@ -123,6 +129,13 @@ for (const c of cuentas) {
       process.exit(1)
     }
     console.log("Rol admin asignado a", c.email)
+  } else if (c.clave === "gerencia") {
+    const { error } = await insforge.database.from("roles").upsert({ user_id: userId, rol: "gerencia" })
+    if (error) {
+      console.error("No se pudo asignar el rol gerencia:", error.message)
+      process.exit(1)
+    }
+    console.log("Rol gerencia (solo lectura + informes) asignado a", c.email)
   } else {
     const { error } = await insforge.database
       .from("roles")

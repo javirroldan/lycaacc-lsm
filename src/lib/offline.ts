@@ -1,6 +1,9 @@
 import type { CamposEditables } from "./types"
 import type { CamposEditablesLocomotora } from "./typesLocomotoras"
 import type { CamposEditablesLavado } from "./typesLavado"
+import type { CamposEditablesBasural, NuevoBasural } from "./typesBasurales"
+import type { CamposEditablesZonaCritica, NuevaZonaCritica } from "./typesZonaCritica"
+import type { CamposEditablesFachadaEntorno, NuevaFachadaEntorno } from "./typesFachadaEntorno"
 import type {
   CamposEditablesServicioFormacion,
   CamposEditablesServicioLocomotora,
@@ -8,7 +11,15 @@ import type {
   NuevaServicioLocomotora,
 } from "./typesServicios"
 
-export type TablaOp = "formaciones" | "locomotoras" | "lavados" | "serviciosFormaciones" | "serviciosLocomotoras"
+export type TablaOp =
+  | "formaciones"
+  | "locomotoras"
+  | "lavados"
+  | "serviciosFormaciones"
+  | "serviciosLocomotoras"
+  | "basurales"
+  | "zona_critica"
+  | "fachada_entorno"
 
 export type TipoOp = "insert" | "update" | "delete"
 
@@ -20,8 +31,14 @@ export interface PendingOp {
     | Partial<CamposEditables>
     | Partial<CamposEditablesLocomotora>
     | Partial<CamposEditablesLavado>
+    | Partial<CamposEditablesBasural>
+    | Partial<CamposEditablesZonaCritica>
+    | Partial<CamposEditablesFachadaEntorno>
     | Partial<CamposEditablesServicioFormacion>
     | Partial<CamposEditablesServicioLocomotora>
+    | NuevoBasural
+    | NuevaZonaCritica
+    | NuevaFachadaEntorno
     | NuevaServicioFormacion
     | NuevaServicioLocomotora
   tipo: TipoOp
@@ -65,8 +82,14 @@ export async function addOp(
     | Partial<CamposEditables>
     | Partial<CamposEditablesLocomotora>
     | Partial<CamposEditablesLavado>
+    | Partial<CamposEditablesBasural>
+    | Partial<CamposEditablesZonaCritica>
+    | Partial<CamposEditablesFachadaEntorno>
     | Partial<CamposEditablesServicioFormacion>
     | Partial<CamposEditablesServicioLocomotora>
+    | NuevoBasural
+    | NuevaZonaCritica
+    | NuevaFachadaEntorno
     | NuevaServicioFormacion
     | NuevaServicioLocomotora,
   tipo: TipoOp = "update",
