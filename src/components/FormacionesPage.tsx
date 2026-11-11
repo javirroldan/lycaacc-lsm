@@ -7,7 +7,8 @@ import { StatsCards } from "./StatsCards"
 import { SyncBadge } from "./SyncBadge"
 import type { useFormaciones } from "../hooks/useFormaciones"
 import { insforgeConfigurado } from "../lib/insforge"
-import { LEYENDA_SEMAFORO } from "../lib/semaforo"
+import { leyendaSemaforo } from "../lib/semaforo"
+import type { UmbralesSemaforo } from "../lib/semaforoConfig"
 
 export type UseFormacionesResult = ReturnType<typeof useFormaciones>
 
@@ -15,12 +16,13 @@ interface Props {
   datos: UseFormacionesResult
   esEditor: boolean
   esGerencia: boolean
-  rol: "admin" | "editor" | "gerencia" | null
+  rol: "admin" | "editor" | "gerencia" | "editor_formaciones" | "editor_locomotoras" | null
   ahora: string
   onSalir: () => void
+  umbrales: UmbralesSemaforo
 }
 
-export function FormacionesPage({ datos, esEditor, esGerencia, rol, ahora, onSalir }: Props) {
+export function FormacionesPage({ datos, esEditor, esGerencia, rol, ahora, onSalir, umbrales }: Props) {
   const { formaciones, loading, error, online, pendientes, aplicarCambio, agregarServicio, aplicarCambioServicio, eliminarServicio, syncPending } = datos
   const [situacion, setSituacion] = useState<"limpieza" | "reparacion" | "fuera-servicio" | null>(null)
 
@@ -49,7 +51,7 @@ export function FormacionesPage({ datos, esEditor, esGerencia, rol, ahora, onSal
         </div>
 
         <div className="flex items-center gap-2 mt-3 flex-wrap">
-          {LEYENDA_SEMAFORO.map((item) => (
+          {leyendaSemaforo(umbrales).map((item) => (
             <span
               key={item.texto}
               className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white/20"
@@ -67,7 +69,7 @@ export function FormacionesPage({ datos, esEditor, esGerencia, rol, ahora, onSal
 
         <div className="mt-3 flex gap-2 flex-wrap items-center justify-between">
           <div className="flex gap-2 flex-wrap">
-            {esEditor && <InformeButton tipo="formaciones" datos={formaciones} tema="azul" tituloModal="Informe de formaciones" />}
+            {rol === "admin" && <InformeButton tipo="formaciones" datos={formaciones} tema="azul" tituloModal="Informe de formaciones" />}
           </div>
           <div className="flex gap-2 flex-wrap">
             {esGerencia && <InformeButton tipo="formaciones" datos={formaciones} tema="azul" tituloModal="Informe de formaciones" etiqueta="GGO informe" />}
@@ -103,6 +105,7 @@ export function FormacionesPage({ datos, esEditor, esGerencia, rol, ahora, onSal
                     key={f.id}
                     formacion={f}
                     editor={esEditor}
+                    umbrales={umbrales}
                     onCambio={(id, c) => void aplicarCambio(id, c)}
                     onAgregarServicio={(formacionId, fecha, situacion) => void agregarServicio(formacionId, fecha, situacion)}
                     onCambioServicio={(servicioId, formacionId, fecha, situacion) => void aplicarCambioServicio(servicioId, formacionId, fecha, situacion)}
@@ -122,6 +125,7 @@ export function FormacionesPage({ datos, esEditor, esGerencia, rol, ahora, onSal
                         key={f.id}
                         formacion={f}
                         editor={esEditor}
+                        umbrales={umbrales}
                         onCambio={(id, c) => void aplicarCambio(id, c)}
                         onAgregarServicio={(formacionId, fecha, situacion) => void agregarServicio(formacionId, fecha, situacion)}
                         onCambioServicio={(servicioId, formacionId, fecha, situacion) => void aplicarCambioServicio(servicioId, formacionId, fecha, situacion)}
@@ -150,6 +154,7 @@ export function FormacionesPage({ datos, esEditor, esGerencia, rol, ahora, onSal
         abierto={situacion !== null}
         estado={situacion ?? "limpieza"}
         formaciones={formaciones}
+        umbrales={umbrales}
         onCerrar={() => setSituacion(null)}
       />
     </div>

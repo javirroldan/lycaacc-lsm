@@ -5,6 +5,7 @@ import { DateSelect } from "./DateSelect"
 import { SituacionSelect } from "./SituacionSelect"
 import { fmtDMY, fmtFechaLavado } from "../lib/dates"
 import { colorDias } from "../lib/semaforo"
+import type { UmbralesSemaforo } from "../lib/semaforoConfig"
 import {
   ESTADO_LOCO_LABEL,
   ESTADOS_LOCO,
@@ -35,13 +36,14 @@ const ESTADO_STYLE: Record<EstadoLocomotora, string> = {
 interface Props {
   locomotora: Locomotora
   editor: boolean
+  umbrales: UmbralesSemaforo
   onCambio: (id: number, campos: { ultima?: string | null; servicio?: ServicioLocomotora; estado?: EstadoLocomotora; descripcion?: string | null }) => void
   onAgregarServicio: (locomotoraId: number, fecha: string, situacion: SituacionLocomotora, servicio: TipoServicioLocomotora) => void
   onCambioServicio: (servicioId: number, locomotoraId: number, fecha: string, situacion: SituacionLocomotora, servicio: TipoServicioLocomotora) => void
   onEliminarServicio: (servicioId: number, locomotoraId: number) => void
 }
 
-export function LocomotoraCard({ locomotora: l, editor, onCambio, onAgregarServicio, onCambioServicio, onEliminarServicio }: Props) {
+export function LocomotoraCard({ locomotora: l, editor, umbrales, onCambio, onAgregarServicio, onCambioServicio, onEliminarServicio }: Props) {
   const sem = SEM_STYLE[l.sem]
   const [abierto, setAbierto] = useState(false)
   const [modoEdicion, setModoEdicion] = useState(false)
@@ -133,7 +135,7 @@ export function LocomotoraCard({ locomotora: l, editor, onCambio, onAgregarServi
         <div className="flex items-center gap-2 pt-1">
           <CalendarDays className="w-4 h-4 text-slate-400" />
           <span className="text-sm text-slate-600">
-            Sin lavar: <strong className={colorDias(l.dias)}>{l.dias === null ? "—" : l.dias === 0 ? "Hoy" : `${l.dias} días`}</strong>
+            Sin lavar: <strong className={colorDias(l.dias, umbrales)}>{l.dias === null ? "—" : l.dias === 0 ? "Hoy" : `${l.dias} días`}</strong>
           </span>
         </div>
 

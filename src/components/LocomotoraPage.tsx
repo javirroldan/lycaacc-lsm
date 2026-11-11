@@ -8,7 +8,8 @@ import { SyncBadge } from "./SyncBadge"
 import type { useLocomotoras } from "../hooks/useLocomotoras"
 import { type EstadoLocomotora } from "../lib/typesLocomotoras"
 import { insforgeConfigurado } from "../lib/insforge"
-import { LEYENDA_SEMAFORO } from "../lib/semaforo"
+import { leyendaSemaforo } from "../lib/semaforo"
+import type { UmbralesSemaforo } from "../lib/semaforoConfig"
 
 export type UseLocomotorasResult = ReturnType<typeof useLocomotoras>
 
@@ -16,12 +17,13 @@ interface Props {
   datos: UseLocomotorasResult
   esEditor: boolean
   esGerencia: boolean
-  rol: "admin" | "editor" | "gerencia" | null
+  rol: "admin" | "editor" | "gerencia" | "editor_formaciones" | "editor_locomotoras" | null
   ahora: string
   onSalir: () => void
+  umbrales: UmbralesSemaforo
 }
 
-export function LocomotoraPage({ datos, esEditor, esGerencia, rol, ahora, onSalir }: Props) {
+export function LocomotoraPage({ datos, esEditor, esGerencia, rol, ahora, onSalir, umbrales }: Props) {
   const { locomotoras, loading, error, online, pendientes, aplicarCambio, agregarServicio, aplicarCambioServicio, eliminarServicio, syncPending } = datos
   const [estadoModal, setEstadoModal] = useState<EstadoLocomotora | null>(null)
 
@@ -47,7 +49,7 @@ export function LocomotoraPage({ datos, esEditor, esGerencia, rol, ahora, onSali
         </div>
 
         <div className="flex items-center gap-2 mt-3 flex-wrap">
-          {LEYENDA_SEMAFORO.map((item) => (
+          {leyendaSemaforo(umbrales).map((item) => (
             <span
               key={item.texto}
               className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white/20"
@@ -65,7 +67,7 @@ export function LocomotoraPage({ datos, esEditor, esGerencia, rol, ahora, onSali
 
         <div className="mt-3 flex gap-2 flex-wrap items-center justify-between">
           <div className="flex gap-2 flex-wrap">
-            {esEditor && <InformeButton tipo="locomotoras" datos={locomotoras} tema="verde" tituloModal="Informe de locomotoras" />}
+            {rol === "admin" && <InformeButton tipo="locomotoras" datos={locomotoras} tema="verde" tituloModal="Informe de locomotoras" />}
           </div>
           <div className="flex gap-2 flex-wrap">
             {esGerencia && <InformeButton tipo="locomotoras" datos={locomotoras} tema="verde" tituloModal="Informe de locomotoras" etiqueta="GGO informe" />}
@@ -100,6 +102,7 @@ export function LocomotoraPage({ datos, esEditor, esGerencia, rol, ahora, onSali
                   key={l.id}
                   locomotora={l}
                   editor={esEditor}
+                  umbrales={umbrales}
                   onCambio={(id, c) => void aplicarCambio(id, c)}
                   onAgregarServicio={(locomotoraId, fecha, situacion, servicio) => void agregarServicio(locomotoraId, fecha, situacion, servicio)}
                   onCambioServicio={(servicioId, locomotoraId, fecha, situacion, servicio) => void aplicarCambioServicio(servicioId, locomotoraId, fecha, situacion, servicio)}
@@ -125,6 +128,7 @@ export function LocomotoraPage({ datos, esEditor, esGerencia, rol, ahora, onSali
         abierto={estadoModal !== null}
         estado={estadoModal ?? "en-servicio"}
         locomotoras={locomotoras}
+        umbrales={umbrales}
         onCerrar={() => setEstadoModal(null)}
       />
     </div>

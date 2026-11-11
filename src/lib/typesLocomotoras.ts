@@ -11,6 +11,8 @@ export interface LocomotoraDB {
   estado: EstadoLocomotora
   descripcion: string | null
   updated_at: string
+  archivada?: boolean
+  archivada_en?: string | null
 }
 
 export type SemColorLocomotora = "verde" | "amarillo" | "rojo" | "sin"

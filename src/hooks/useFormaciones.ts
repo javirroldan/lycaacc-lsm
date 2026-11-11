@@ -106,8 +106,14 @@ export function useFormaciones() {
 
   const load = useCallback(async () => {
     setLoading(true)
+    setError(null)
+    let res = await insforge.database.from("formaciones").select("*").eq("archivada", false).order("formacion")
+    // Compatibilidad: si la migración de archivado aún no se aplicó, reintentar sin filtro
+    if (res.error) {
+      res = await insforge.database.from("formaciones").select("*").order("formacion")
+    }
     const [{ data, error: err }, serviciosRes] = await Promise.all([
-      insforge.database.from("formaciones").select("*").order("formacion"),
+      Promise.resolve(res),
       insforge.database.from("servicios_formaciones").select("*").order("fecha"),
     ])
     if (err) {
@@ -119,9 +125,10 @@ export function useFormaciones() {
         lista.push(s as ServicioFormacion)
         porFormacion.set(s.formacion_id, lista)
       }
+      const filas = (data as FormacionDB[]).filter((f) => !f.archivada)
       setFormaciones(
         ordenarPorCriticidad(
-          (data as FormacionDB[]).map((f) => aFormacion(f, porFormacion.get(f.id) ?? [])),
+          filas.map((f) => aFormacion(f, porFormacion.get(f.id) ?? [])),
         ),
       )
     }
@@ -162,6 +169,10 @@ export function useFormaciones() {
     const onCambio = (msg: SocketMessage) => {
       const nuevo = msg as unknown as FormacionDB | null
       if (!nuevo?.id) return
+      if (nuevo.archivada) {
+        setFormaciones((prev) => prev.filter((f) => f.id !== nuevo.id))
+        return
+      }
       setFormaciones((prev) => {
         const existe = prev.some((f) => f.id === nuevo.id)
         if (existe) {

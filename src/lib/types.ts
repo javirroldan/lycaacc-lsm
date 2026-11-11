@@ -10,6 +10,8 @@ export interface FormacionDB {
   estado: Estado
   descripcion: string | null
   updated_at: string
+  archivada?: boolean
+  archivada_en?: string | null
 }
 
 export type SemColor = "verde" | "amarillo" | "rojo" | "sin"

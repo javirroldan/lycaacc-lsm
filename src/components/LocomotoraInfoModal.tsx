@@ -2,16 +2,18 @@ import { createPortal } from "react-dom"
 import { Power, PowerOff, X } from "lucide-react"
 import { fmtDMY } from "../lib/dates"
 import { colorDias } from "../lib/semaforo"
+import type { UmbralesSemaforo } from "../lib/semaforoConfig"
 import type { EstadoLocomotora, Locomotora } from "../lib/typesLocomotoras"
 
 interface Props {
   abierto: boolean
   estado: EstadoLocomotora
   locomotoras: Locomotora[]
+  umbrales: UmbralesSemaforo
   onCerrar: () => void
 }
 
-export function LocomotoraInfoModal({ abierto, estado, locomotoras, onCerrar }: Props) {
+export function LocomotoraInfoModal({ abierto, estado, locomotoras, umbrales, onCerrar }: Props) {
   if (!abierto) return null
   const lista = locomotoras
     .filter((l) => l.estado === estado)
@@ -51,7 +53,7 @@ export function LocomotoraInfoModal({ abierto, estado, locomotoras, onCerrar }: 
                       <p className="text-slate-400 text-xs">{l.servicio === "ld" ? "Larga Distancia" : "Local"}</p>
                     </div>
                   </div>
-                  <span className={`text-sm font-bold ${colorDias(l.dias)}`}>
+                  <span className={`text-sm font-bold ${colorDias(l.dias, umbrales)}`}>
                     {l.dias === null ? "—" : l.dias === 0 ? "Hoy" : `${l.dias} días`}
                   </span>
                 </li>

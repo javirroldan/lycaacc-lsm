@@ -12,7 +12,7 @@ import { fechaHoy } from "../lib/dates"
 import { insforgeConfigurado } from "../lib/insforge"
 
 export type UseZonaCriticaResult = ReturnType<typeof useZonaCritica>
-interface Props { datos: UseZonaCriticaResult; esEditor: boolean; esGerencia: boolean; rol: "admin" | "editor" | "gerencia" | null; ahora: string; onSalir: () => void }
+interface Props { datos: UseZonaCriticaResult; esEditor: boolean; esGerencia: boolean; rol: "admin" | "editor" | "gerencia" | "editor_formaciones" | "editor_locomotoras" | null; ahora: string; onSalir: () => void }
 
 const inputCls = "mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-rose-400"
 function Input({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {

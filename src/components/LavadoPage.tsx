@@ -9,7 +9,7 @@ import { TimeSelect } from "./TimeSelect"
 import { LavadoStats, type LavadoDetalleModo } from "./LavadoStats"
 import { LavadoInfoModal } from "./LavadoInfoModal"
 import type { useLavados } from "../hooks/useLavados"
-import { FORMACIONES_LAVADO, ordenarPorRecienteLavado, type Lavado } from "../lib/typesLavado"
+import { ordenarPorRecienteLavado, type Lavado } from "../lib/typesLavado"
 import { fechaHoy } from "../lib/dates"
 import { insforgeConfigurado } from "../lib/insforge"
 
@@ -17,19 +17,26 @@ export type UseLavadosResult = ReturnType<typeof useLavados>
 
 interface Props {
   datos: UseLavadosResult
+  formacionesActivas: number[]
   esEditor: boolean
   esGerencia: boolean
-  rol: "admin" | "editor" | "gerencia" | null
+  rol: "admin" | "editor" | "gerencia" | "editor_formaciones" | "editor_locomotoras" | null
   ahora: string
   onSalir: () => void
 }
 
-export function LavadoPage({ datos, esEditor, esGerencia, rol, ahora, onSalir }: Props) {
+export function LavadoPage({ datos, formacionesActivas, esEditor, esGerencia, rol, ahora, onSalir }: Props) {
   const { lavados, loading, error, online, pendientes, aplicarCambio, agregarLavado, eliminarLavado, syncPending } = datos
   const [agregando, setAgregando] = useState(false)
   const [detalle, setDetalle] = useState<LavadoDetalleModo | null>(null)
+  const universo = useMemo(
+    () => [...formacionesActivas].sort((a, b) => a - b),
+    [formacionesActivas],
+  )
+  const universoSet = useMemo(() => new Set(universo), [universo])
+
   const [form, setForm] = useState<{ formacion: number; fecha: string; ingreso: string; egreso: string }>({
-    formacion: FORMACIONES_LAVADO[0],
+    formacion: universo[0] ?? 1,
     fecha: fechaHoy(),
     ingreso: "",
     egreso: "",
@@ -38,6 +45,7 @@ export function LavadoPage({ datos, esEditor, esGerencia, rol, ahora, onSalir }:
   const porFormacion = useMemo(() => {
     const mapa = new Map<number, Lavado[]>()
     for (const l of lavados) {
+      if (!universoSet.has(l.formacion)) continue
       const arr = mapa.get(l.formacion)
       if (arr) arr.push(l)
       else mapa.set(l.formacion, [l])
@@ -45,15 +53,15 @@ export function LavadoPage({ datos, esEditor, esGerencia, rol, ahora, onSalir }:
     return [...mapa.keys()]
       .sort((a, b) => a - b)
       .map((k) => ({ formacion: k, registros: ordenarPorRecienteLavado(mapa.get(k) as Lavado[]) }))
-  }, [lavados])
+  }, [lavados, universoSet])
 
   const formacionesDisponibles = useMemo(
-    () => FORMACIONES_LAVADO.filter((n) => !porFormacion.some((g) => g.formacion === n)),
-    [porFormacion],
+    () => universo.filter((n) => !porFormacion.some((g) => g.formacion === n)),
+    [universo, porFormacion],
   )
 
   const abrirAlta = () => {
-    setForm({ formacion: formacionesDisponibles[0], fecha: fechaHoy(), ingreso: "", egreso: "" })
+    setForm({ formacion: formacionesDisponibles[0] ?? universo[0] ?? 1, fecha: fechaHoy(), ingreso: "", egreso: "" })
     setAgregando(true)
   }
 
@@ -98,7 +106,7 @@ export function LavadoPage({ datos, esEditor, esGerencia, rol, ahora, onSalir }:
 
         <div className="mt-3 flex gap-2 flex-wrap items-center justify-between">
           <div className="flex gap-2 flex-wrap">
-            {esEditor && <InformeButton tipo="lavados" datos={lavados} tema="naranja" tituloModal="Informe de lavado" />}
+            {rol === "admin" && <InformeButton tipo="lavados" datos={lavados} tema="naranja" tituloModal="Informe de lavado" />}
           </div>
           <div className="flex gap-2 flex-wrap">
             {esGerencia && <InformeButton tipo="lavados" datos={lavados} tema="naranja" tituloModal="Informe de lavado" etiqueta="GGO informe" />}
@@ -119,7 +127,7 @@ export function LavadoPage({ datos, esEditor, esGerencia, rol, ahora, onSalir }:
         {esEditor && (
           <button
             onClick={abrirAlta}
-            disabled={formacionesDisponibles.length === 0}
+            disabled={formacionesDisponibles.length === 0 || universo.length === 0}
             className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-orange-600 text-white hover:bg-orange-700 transition text-xs font-bold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="w-4 h-4" /> Agregar lavado
@@ -256,7 +264,7 @@ export function LavadoPage({ datos, esEditor, esGerencia, rol, ahora, onSalir }:
       <LavadoInfoModal
         abierto={detalle !== null}
         modo={detalle ?? "registros"}
-        registros={lavados}
+        registros={lavados.filter((l) => universoSet.has(l.formacion))}
         formaciones={porFormacion}
         sinLavados={formacionesDisponibles}
         onCerrar={() => setDetalle(null)}

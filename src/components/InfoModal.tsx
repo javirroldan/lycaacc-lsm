@@ -2,16 +2,18 @@ import { createPortal } from "react-dom"
 import { X, Factory, Wrench, XCircle } from "lucide-react"
 import { fmtDMY } from "../lib/dates"
 import { colorDias } from "../lib/semaforo"
+import type { UmbralesSemaforo } from "../lib/semaforoConfig"
 import type { Formacion } from "../lib/types"
 
 interface Props {
   abierto: boolean
   estado: "limpieza" | "reparacion" | "fuera-servicio"
   formaciones: Formacion[]
+  umbrales: UmbralesSemaforo
   onCerrar: () => void
 }
 
-export function InfoModal({ abierto, estado, formaciones, onCerrar }: Props) {
+export function InfoModal({ abierto, estado, formaciones, umbrales, onCerrar }: Props) {
   if (!abierto) return null
   const lista = formaciones
     .filter((f) => f.estado === estado)
@@ -56,7 +58,7 @@ export function InfoModal({ abierto, estado, formaciones, onCerrar }: Props) {
                       <p className="text-slate-500 text-xs">Anteúltima: {fmtDMY(f.anteultima) || "—"}</p>
                     </div>
                   </div>
-                  <span className={`text-sm font-bold ${colorDias(f.dias)}`}>
+                  <span className={`text-sm font-bold ${colorDias(f.dias, umbrales)}`}>
                     {f.dias === null ? "—" : f.dias === 0 ? "Hoy" : `${f.dias} días`}
                   </span>
                 </li>

@@ -108,8 +108,14 @@ export function useLocomotoras() {
 
   const load = useCallback(async () => {
     setLoading(true)
+    setError(null)
+    let res = await insforge.database.from("locomotoras").select("*").eq("archivada", false).order("ultima")
+    // Compatibilidad: si la migración de archivado aún no se aplicó, reintentar sin filtro
+    if (res.error) {
+      res = await insforge.database.from("locomotoras").select("*").order("ultima")
+    }
     const [{ data, error: err }, serviciosRes] = await Promise.all([
-      insforge.database.from("locomotoras").select("*").order("ultima"),
+      Promise.resolve(res),
       insforge.database.from("servicios_locomotoras").select("*").order("fecha"),
     ])
     if (err) {
@@ -121,8 +127,9 @@ export function useLocomotoras() {
         lista.push(s as ServicioLocomotora)
         porLocomotora.set(s.locomotora_id, lista)
       }
+      const filas = (data as LocomotoraDB[]).filter((l) => !l.archivada)
       setLocomotoras(
-        ordenarPorCriticidadLoco((data as LocomotoraDB[]).map((l) => aLocomotora(l, porLocomotora.get(l.id) ?? []))),
+        ordenarPorCriticidadLoco(filas.map((l) => aLocomotora(l, porLocomotora.get(l.id) ?? []))),
       )
     }
     setLoading(false)
@@ -162,6 +169,10 @@ export function useLocomotoras() {
     const onCambio = (msg: SocketMessage) => {
       const nuevo = msg as unknown as LocomotoraDB | null
       if (!nuevo?.id) return
+      if (nuevo.archivada) {
+        setLocomotoras((prev) => prev.filter((l) => l.id !== nuevo.id))
+        return
+      }
       setLocomotoras((prev) => {
         const existe = prev.some((l) => l.id === nuevo.id)
         if (existe) {

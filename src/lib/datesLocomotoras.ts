@@ -1,11 +1,12 @@
-import { UMBRAL_AMARILLO, UMBRAL_VERDE } from "./semaforo"
+import { getSemaforosConfig, type UmbralesSemaforo } from "./semaforoConfig"
+import { semColor } from "./semaforo"
 import type { Locomotora, SemColorLocomotora } from "./typesLocomotoras"
 
-export function semaforoLoco(dias: number | null): SemColorLocomotora {
-  if (dias === null) return "sin"
-  if (dias <= UMBRAL_VERDE) return "verde"
-  if (dias <= UMBRAL_AMARILLO) return "amarillo"
-  return "rojo"
+export function semaforoLoco(
+  dias: number | null,
+  umbrales: UmbralesSemaforo = getSemaforosConfig().locomotoras,
+): SemColorLocomotora {
+  return semColor(dias, umbrales) as SemColorLocomotora
 }
 
 export function ordenarPorCriticidadLoco(lista: Locomotora[]): Locomotora[] {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { AlertTriangle, Building2, Trash2 } from "lucide-react"
+import { AlertTriangle, Building2, Settings, Trash2 } from "lucide-react"
 import { AuthView, LoadingScreen } from "./components/AuthView"
 import { FloatingNav } from "./components/FloatingNav"
 import { FormacionesPage } from "./components/FormacionesPage"
@@ -16,8 +16,10 @@ import { useBasurales } from "./hooks/useBasurales"
 import { useZonaCritica } from "./hooks/useZonaCritica"
 import { useFachadaEntorno } from "./hooks/useFachadaEntorno"
 import { fechaAhora } from "./lib/dates"
+import { cargarSemaforosConfig, setSemaforosConfig, type SemaforosConfig, SEMAFOROS_DEFAULT } from "./lib/semaforoConfig"
+import { AdminPage } from "./components/AdminPage"
 
-type Pagina = "formaciones" | "lavado" | "locomotoras" | "basurales" | "zona_critica" | "fachada_entorno"
+type Pagina = "formaciones" | "lavado" | "locomotoras" | "basurales" | "zona_critica" | "fachada_entorno" | "admin"
 
 // Basurales, Zona crítica y Fachada entorno quedan ocultas para todos
 // (ni admin ve menú ni páginas) hasta que estén 100% listas.
@@ -30,6 +32,7 @@ export default function App() {
   const { usuario, rol, loading: authLoading, iniciarPorCodigo, signOut } = useAuth()
   const [pagina, setPagina] = useState<Pagina>("formaciones")
   const [ahora, setAhora] = useState(fechaAhora())
+  const [semaforos, setSemaforos] = useState<SemaforosConfig>(SEMAFOROS_DEFAULT)
 
   const formaciones = useFormaciones()
   const lavados = useLavados()
@@ -43,8 +46,19 @@ export default function App() {
     return () => clearInterval(t)
   }, [])
 
-  const esEditor = !!usuario && (rol === "admin" || rol === "editor")
+  useEffect(() => {
+    void cargarSemaforosConfig().then((cfg) => {
+      setSemaforosConfig(cfg)
+      setSemaforos(cfg)
+    })
+  }, [])
+
+  const esAdmin = rol === "admin"
   const esGerencia = !!usuario && rol === "gerencia"
+  const puedeEditarFormaciones = esAdmin || rol === "editor_formaciones"
+  const puedeEditarLocomotoras = esAdmin || rol === "editor_locomotoras"
+  const puedeEditarLavado = esAdmin
+  const puedeEditarOtras = esAdmin // basurales, zona crítica, fachada
 
   if (authLoading) {
     return <LoadingScreen titulo="Cargando…" detalle="Recuperando tu sesión" />
@@ -59,20 +73,49 @@ export default function App() {
   }
 
   const paginaEl =
-    !SECCIONES_NUEVAS_ACTIVAS && (pagina === "basurales" || pagina === "zona_critica" || pagina === "fachada_entorno") ? (
-      <FormacionesPage datos={formaciones} esEditor={esEditor} esGerencia={esGerencia} rol={rol} ahora={ahora} onSalir={salir} />
+    pagina === "admin" && esAdmin ? (
+      <AdminPage
+        rol={rol}
+        ahora={ahora}
+        onSalir={salir}
+        semaforos={semaforos}
+        onSemaforosChange={(cfg) => {
+          setSemaforosConfig(cfg)
+          setSemaforos(cfg)
+          void formaciones.load()
+          void locomotoras.load()
+        }}
+        formaciones={formaciones.formaciones}
+        locomotoras={locomotoras.locomotoras}
+        lavados={lavados.lavados}
+        onRefetch={() => {
+          void formaciones.load()
+          void locomotoras.load()
+          void lavados.load()
+        }}
+      />
+    ) : !SECCIONES_NUEVAS_ACTIVAS && (pagina === "basurales" || pagina === "zona_critica" || pagina === "fachada_entorno") ? (
+      <FormacionesPage datos={formaciones} esEditor={puedeEditarFormaciones} esGerencia={esGerencia} rol={rol} ahora={ahora} onSalir={salir} umbrales={semaforos.formaciones} />
     ) : pagina === "formaciones" ? (
-      <FormacionesPage datos={formaciones} esEditor={esEditor} esGerencia={esGerencia} rol={rol} ahora={ahora} onSalir={salir} />
+      <FormacionesPage datos={formaciones} esEditor={puedeEditarFormaciones} esGerencia={esGerencia} rol={rol} ahora={ahora} onSalir={salir} umbrales={semaforos.formaciones} />
     ) : pagina === "locomotoras" ? (
-      <LocomotoraPage datos={locomotoras} esEditor={esEditor} esGerencia={esGerencia} rol={rol} ahora={ahora} onSalir={salir} />
+      <LocomotoraPage datos={locomotoras} esEditor={puedeEditarLocomotoras} esGerencia={esGerencia} rol={rol} ahora={ahora} onSalir={salir} umbrales={semaforos.locomotoras} />
     ) : pagina === "lavado" ? (
-      <LavadoPage datos={lavados} esEditor={esEditor} esGerencia={esGerencia} rol={rol} ahora={ahora} onSalir={salir} />
+      <LavadoPage
+        datos={lavados}
+        formacionesActivas={formaciones.formaciones.map((f) => f.formacion)}
+        esEditor={puedeEditarLavado}
+        esGerencia={esGerencia}
+        rol={rol}
+        ahora={ahora}
+        onSalir={salir}
+      />
     ) : pagina === "basurales" ? (
-      <BasuralesPage datos={basurales} esEditor={esEditor} esGerencia={esGerencia} rol={rol} ahora={ahora} onSalir={salir} />
+      <BasuralesPage datos={basurales} esEditor={puedeEditarOtras} esGerencia={esGerencia} rol={rol} ahora={ahora} onSalir={salir} />
     ) : pagina === "fachada_entorno" ? (
-      <FachadaPage datos={fachadaEntorno} esEditor={esEditor} esGerencia={esGerencia} rol={rol} ahora={ahora} onSalir={salir} />
+      <FachadaPage datos={fachadaEntorno} esEditor={puedeEditarOtras} esGerencia={esGerencia} rol={rol} ahora={ahora} onSalir={salir} />
     ) : (
-      <ZonaCriticaPage datos={zonaCritica} esEditor={esEditor} esGerencia={esGerencia} rol={rol} ahora={ahora} onSalir={salir} />
+      <ZonaCriticaPage datos={zonaCritica} esEditor={puedeEditarOtras} esGerencia={esGerencia} rol={rol} ahora={ahora} onSalir={salir} />
     )
 
   return (
@@ -135,6 +178,19 @@ export default function App() {
                   onClick: () => setPagina("fachada_entorno" as Pagina),
                   activeText: "text-violet-600",
                   underline: "bg-violet-500",
+                },
+              ]
+            : []),
+          ...(esAdmin
+            ? [
+                {
+                  key: "admin" as const,
+                  label: "Admin",
+                  icon: <Settings className="h-5 w-5" />,
+                  active: pagina === "admin",
+                  onClick: () => setPagina("admin" as Pagina),
+                  activeText: "text-slate-700",
+                  underline: "bg-slate-600",
                 },
               ]
             : []),

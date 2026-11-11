@@ -44,6 +44,18 @@ const cuentas = [
     password: env.VITE_GERENCIA_PASSWORD,
     nombre: "Gerencia",
   },
+  {
+    clave: "formaciones",
+    email: env.VITE_FORMACIONES_EMAIL ?? "formaciones@trenes.local",
+    password: env.VITE_FORMACIONES_PASSWORD,
+    nombre: "Formaciones",
+  },
+  {
+    clave: "locomotoras",
+    email: env.VITE_LOCOMOTORAS_EMAIL ?? "locomotoras@trenes.local",
+    password: env.VITE_LOCOMOTORAS_PASSWORD,
+    nombre: "Locomotoras",
+  },
 ]
 
 if (!url || !apiKey) {
@@ -53,11 +65,10 @@ if (!url || !apiKey) {
   process.exit(1)
 }
 
-for (const c of cuentas) {
-  if (!c.password) {
-    console.error(`Falta VITE_${c.clave.toUpperCase()}_PASSWORD en .env.local para "${c.clave}"`)
-    process.exit(1)
-  }
+const cuentasActivas = cuentas.filter((c) => c.password)
+if (cuentasActivas.length === 0) {
+  console.error("No hay cuentas con contraseña configurada en .env/.env.local")
+  process.exit(1)
 }
 
 const insforge = createAdminClient({ baseUrl: url, apiKey })
@@ -80,7 +91,7 @@ async function listarUsuarios() {
   return body?.data ?? []
 }
 
-for (const c of cuentas) {
+for (const c of cuentasActivas) {
   const usuarios = await listarUsuarios()
   const existente = usuarios.find((u) => u.email === c.email)
 
@@ -136,6 +147,20 @@ for (const c of cuentas) {
       process.exit(1)
     }
     console.log("Rol gerencia (solo lectura + informes) asignado a", c.email)
+  } else if (c.clave === "formaciones") {
+    const { error } = await insforge.database.from("roles").upsert({ user_id: userId, rol: "editor_formaciones" })
+    if (error) {
+      console.error("No se pudo asignar el rol editor_formaciones:", error.message)
+      process.exit(1)
+    }
+    console.log("Rol editor_formaciones (edición solo en Formaciones) asignado a", c.email)
+  } else if (c.clave === "locomotoras") {
+    const { error } = await insforge.database.from("roles").upsert({ user_id: userId, rol: "editor_locomotoras" })
+    if (error) {
+      console.error("No se pudo asignar el rol editor_locomotoras:", error.message)
+      process.exit(1)
+    }
+    console.log("Rol editor_locomotoras (edición solo en Locomotoras) asignado a", c.email)
   } else {
     const { error } = await insforge.database
       .from("roles")

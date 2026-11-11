@@ -5,6 +5,7 @@ import { DateSelect } from "./DateSelect"
 import { SituacionSelect } from "./SituacionSelect"
 import { fmtDMY, fmtFechaLavado } from "../lib/dates"
 import { colorDias } from "../lib/semaforo"
+import type { UmbralesSemaforo } from "../lib/semaforoConfig"
 import { ESTADOS, ESTADO_LABEL, type Estado, type Formacion } from "../lib/types"
 import type { ServicioFormacion, SituacionFormacion } from "../lib/typesServicios"
 
@@ -25,13 +26,14 @@ const ESTADO_STYLE: Record<Estado, string> = {
 interface Props {
   formacion: Formacion
   editor: boolean
+  umbrales: UmbralesSemaforo
   onCambio: (id: number, campos: { anteultima?: string | null; ultima?: string | null; estado?: Estado; descripcion?: string | null }) => void
   onAgregarServicio: (formacionId: number, fecha: string, situacion: SituacionFormacion) => void
   onCambioServicio: (servicioId: number, formacionId: number, fecha: string, situacion: SituacionFormacion) => void
   onEliminarServicio: (servicioId: number, formacionId: number) => void
 }
 
-export function FormationCard({ formacion: f, editor, onCambio, onAgregarServicio, onCambioServicio, onEliminarServicio }: Props) {
+export function FormationCard({ formacion: f, editor, umbrales, onCambio, onAgregarServicio, onCambioServicio, onEliminarServicio }: Props) {
   const sem = SEM_STYLE[f.sem]
   const [abierto, setAbierto] = useState(false)
   const [modoEdicion, setModoEdicion] = useState(false)
@@ -116,7 +118,7 @@ export function FormationCard({ formacion: f, editor, onCambio, onAgregarServici
         <div className="flex items-center gap-2 pt-1">
           <CalendarDays className="w-4 h-4 text-slate-400" />
           <span className="text-sm text-slate-600">
-            Demora: <strong className={colorDias(f.dias)}>{f.dias === null ? "—" : f.dias === 0 ? "Hoy" : `${f.dias} días`}</strong>
+            Demora: <strong className={colorDias(f.dias, umbrales)}>{f.dias === null ? "—" : f.dias === 0 ? "Hoy" : `${f.dias} días`}</strong>
           </span>
         </div>
 

@@ -1,6 +1,8 @@
 import { jsPDF } from "jspdf"
 import autoTable, { type CellHookData } from "jspdf-autotable"
 import { fmtDMY, fmtFechaLavado, parseISO, semaforo } from "./dates"
+import { getSemaforosConfig, type UmbralesSemaforo } from "./semaforoConfig"
+import { semColor } from "./semaforo"
 import { ESTADO_LABEL, type Formacion } from "./types"
 import {
   ESTADO_LOCO_LABEL,
@@ -116,12 +118,13 @@ function resumenSeccion(
   y0: number,
   titulo: string,
   lista: { dias: number | null }[],
+  umbrales: UmbralesSemaforo,
 ): number {
   let verde = 0
   let amarillo = 0
   let rojo = 0
   for (const a of lista) {
-    const s = semaforo(a.dias).sem
+    const s = semColor(a.dias, umbrales)
     if (s === "verde") verde++
     else if (s === "amarillo") amarillo++
     else if (s === "rojo") rojo++
@@ -322,7 +325,7 @@ function filasLocomotoras(locomotoras: Locomotora[], desde?: string, hasta?: str
     if (enRangoList.length === 0) continue
     const historial = ordenarServicios(enRangoList)
     totalLavados += historial.length
-    const situacion = semaforo(l.dias).texto
+    const situacion = semaforo(l.dias, getSemaforosConfig().locomotoras).texto
     historial.forEach((s, j) => {
       filas.push({
         body: [
@@ -417,7 +420,7 @@ export async function generarInformeFormaciones(
 
   const yPie = pieDeInforme(doc, "Informe de formaciones", desde, hasta)
 
-  const y1 = resumenSeccion(doc, yPie + 2, "Formaciones", formacionesEnRango(formaciones, desde, hasta))
+  const y1 = resumenSeccion(doc, yPie + 2, "Formaciones", formacionesEnRango(formaciones, desde, hasta), getSemaforosConfig().formaciones)
 
   const { filas, totalLavados } = filasFormaciones(formaciones, desde, hasta)
   if (filas.length === 0) return doc
@@ -455,7 +458,7 @@ export async function generarInformeLocomotoras(
 
   const yPie = pieDeInforme(doc, "Informe de locomotoras", desde, hasta)
 
-  const y1 = resumenSeccion(doc, yPie + 2, "Locomotoras", locomotorasEnRango(locomotoras, desde, hasta))
+  const y1 = resumenSeccion(doc, yPie + 2, "Locomotoras", locomotorasEnRango(locomotoras, desde, hasta), getSemaforosConfig().locomotoras)
 
   const { filas, totalLavados } = filasLocomotoras(locomotoras, desde, hasta)
   if (filas.length === 0) return doc

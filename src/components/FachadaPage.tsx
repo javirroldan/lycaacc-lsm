@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { LogOut, Plus, X } from "lucide-react"
+import { LogOut, Plus, Search, X } from "lucide-react"
 import { FachadaCard } from "./FachadaCard"
 import { FachadaStats, type FachadaDetalleModo } from "./FachadaStats"
 import { FachadaInfoModal } from "./FachadaInfoModal"
@@ -27,7 +27,7 @@ interface Props {
   datos: UseFachadaEntornoResult
   esEditor: boolean
   esGerencia: boolean
-  rol: "admin" | "editor" | "gerencia" | null
+  rol: "admin" | "editor" | "gerencia" | "editor_formaciones" | "editor_locomotoras" | null
   ahora: string
   onSalir: () => void
 }
@@ -49,10 +49,16 @@ export function FachadaPage({ datos, esEditor, esGerencia, rol, ahora, onSalir }
   const [detalle, setDetalle] = useState<FachadaDetalleModo | null>(null)
   const [form, setForm] = useState<NuevaFachadaEntorno | null>(null)
   const [editId, setEditId] = useState<number | null>(null)
+  const [busqueda, setBusqueda] = useState("")
 
   const grupos = useMemo(() => agruparPorEstacion(registros), [registros])
   const suspendidas = useMemo(() => registros.filter((r) => r.suspendida_mal_tiempo === true).length, [registros])
   const estacionesConDatos = useMemo(() => grupos.filter((g) => g.registros.length > 0).length, [grupos])
+  const gruposFiltrados = useMemo(() => {
+    const q = busqueda.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim()
+    if (!q) return grupos
+    return grupos.filter((g) => g.estacion.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().includes(q))
+  }, [grupos, busqueda])
 
   const abrirNuevo = (estacion: string) => {
     setEditId(null)
@@ -115,6 +121,37 @@ export function FachadaPage({ datos, esEditor, esGerencia, rol, ahora, onSalir }
       <main className="space-y-4">
         {!loading && (
           <FachadaStats registros={registros.length} estaciones={estacionesConDatos} suspendidas={suspendidas} onVer={setDetalle} />
+        )}
+
+        {!loading && (
+          <div>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              <input
+                type="text"
+                inputMode="search"
+                placeholder="Buscar estación… (ej: Retiro, Pilar)"
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white/95 pl-9 pr-9 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-400 shadow-sm"
+              />
+              {busqueda && (
+                <button
+                  type="button"
+                  onClick={() => setBusqueda("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 hover:bg-slate-100 rounded-lg p-1 transition cursor-pointer text-slate-500"
+                  aria-label="Limpiar búsqueda"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+            {busqueda && (
+              <p className="mt-1 px-1 text-xs text-white/70">
+                {gruposFiltrados.length} de {grupos.length} estaciones
+              </p>
+            )}
+          </div>
         )}
 
         {esEditor && form && (
@@ -223,11 +260,16 @@ export function FachadaPage({ datos, esEditor, esGerencia, rol, ahora, onSalir }
           <div className="rounded-xl bg-white/10 text-white text-center py-12">Cargando fachada entorno…</div>
         ) : (
           <>
-            <h2 className="text-white font-bold text-sm uppercase tracking-wide px-1">Estaciones <span className="opacity-80 font-medium normal-case">({grupos.length} · {registros.length} cargas)</span></h2>
+            <h2 className="text-white font-bold text-sm uppercase tracking-wide px-1">Estaciones <span className="opacity-80 font-medium normal-case">({gruposFiltrados.length} · {registros.length} cargas)</span></h2>
             <div className="grid grid-cols-1 gap-3">
-              {grupos.map((g) => (
+              {gruposFiltrados.map((g) => (
                 <FachadaCard key={g.estacion} estacion={g.estacion} registros={g.registros} editor={esEditor} onEditar={abrirEditar} onEliminar={(id) => void eliminar(id)} onAgregar={(est) => abrirNuevo(est)} />
               ))}
+              {gruposFiltrados.length === 0 && (
+                <div className="rounded-xl bg-white/10 text-white/80 text-center py-10 text-sm">
+                  No se encontraron estaciones para “{busqueda}”.
+                </div>
+              )}
             </div>
           </>
         )}

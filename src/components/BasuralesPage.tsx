@@ -17,7 +17,7 @@ interface Props {
   datos: UseBasuralesResult
   esEditor: boolean
   esGerencia: boolean
-  rol: "admin" | "editor" | "gerencia" | null
+  rol: "admin" | "editor" | "gerencia" | "editor_formaciones" | "editor_locomotoras" | null
   ahora: string
   onSalir: () => void
 }
