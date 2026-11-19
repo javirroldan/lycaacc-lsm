@@ -23,10 +23,10 @@ type Pagina = "formaciones" | "lavado" | "locomotoras" | "basurales" | "zona_cri
 
 // Basurales, Zona crítica y Fachada entorno quedan ocultas para todos
 // (ni admin ve menú ni páginas) hasta que estén 100% listas.
-// Para habilitarlas: poné VITE_SECCIONES_NUEVAS=true en el deploy (Vercel)
-// o cambiá el default a true acá.
-// Ejemplo .env: VITE_SECCIONES_NUEVAS=true
-const SECCIONES_NUEVAS_ACTIVAS = import.meta.env.VITE_SECCIONES_NUEVAS === "true"
+// Para habilitarlas cuando estén listas: restaurar la lectura de env:
+//   const SECCIONES_NUEVAS_ACTIVAS = import.meta.env.VITE_SECCIONES_NUEVAS === "true"
+// y configurar VITE_SECCIONES_NUEVAS=true en el deploy (Vercel).
+const SECCIONES_NUEVAS_ACTIVAS = false
 
 export default function App() {
   const { usuario, rol, loading: authLoading, iniciarPorCodigo, signOut } = useAuth()
