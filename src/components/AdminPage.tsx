@@ -8,7 +8,7 @@ import type { Locomotora } from "../lib/typesLocomotoras"
 import type { Lavado } from "../lib/typesLavado"
 
 interface Props {
-  rol: "admin" | "editor" | "gerencia" | "editor_formaciones" | "editor_locomotoras" | null
+  rol: "admin" | "editor" | "gerencia" | "editor_formaciones_locomotoras" | "editor_lavado" | null
   ahora: string
   onSalir: () => void
   semaforos: SemaforosConfig

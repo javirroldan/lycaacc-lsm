@@ -55,9 +55,9 @@ export default function App() {
 
   const esAdmin = rol === "admin"
   const esGerencia = !!usuario && rol === "gerencia"
-  const puedeEditarFormaciones = esAdmin || rol === "editor_formaciones"
-  const puedeEditarLocomotoras = esAdmin || rol === "editor_locomotoras"
-  const puedeEditarLavado = esAdmin
+  const puedeEditarFormaciones = esAdmin || rol === "editor_formaciones_locomotoras"
+  const puedeEditarLocomotoras = esAdmin || rol === "editor_formaciones_locomotoras"
+  const puedeEditarLavado = esAdmin || rol === "editor_lavado"
   const puedeEditarOtras = esAdmin // basurales, zona crítica, fachada
 
   if (authLoading) {

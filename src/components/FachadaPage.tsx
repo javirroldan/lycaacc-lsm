@@ -27,7 +27,7 @@ interface Props {
   datos: UseFachadaEntornoResult
   esEditor: boolean
   esGerencia: boolean
-  rol: "admin" | "editor" | "gerencia" | "editor_formaciones" | "editor_locomotoras" | null
+  rol: "admin" | "editor" | "gerencia" | "editor_formaciones_locomotoras" | "editor_lavado" | null
   ahora: string
   onSalir: () => void
 }

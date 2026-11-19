@@ -45,16 +45,16 @@ const cuentas = [
     nombre: "Gerencia",
   },
   {
-    clave: "formaciones",
-    email: env.VITE_FORMACIONES_EMAIL ?? "formaciones@trenes.local",
-    password: env.VITE_FORMACIONES_PASSWORD,
-    nombre: "Formaciones",
+    clave: "formaciones_locomotoras",
+    email: env.VITE_FORMACIONES_LOCOMOTORAS_EMAIL ?? "formaciones_locomotoras@trenes.local",
+    password: env.VITE_FORMACIONES_LOCOMOTORAS_PASSWORD,
+    nombre: "Formaciones y Locomotoras",
   },
   {
-    clave: "locomotoras",
-    email: env.VITE_LOCOMOTORAS_EMAIL ?? "locomotoras@trenes.local",
-    password: env.VITE_LOCOMOTORAS_PASSWORD,
-    nombre: "Locomotoras",
+    clave: "lavado",
+    email: env.VITE_LAVADO_EMAIL ?? "lavado@trenes.local",
+    password: env.VITE_LAVADO_PASSWORD,
+    nombre: "Lavado",
   },
 ]
 
@@ -147,20 +147,20 @@ for (const c of cuentasActivas) {
       process.exit(1)
     }
     console.log("Rol gerencia (solo lectura + informes) asignado a", c.email)
-  } else if (c.clave === "formaciones") {
-    const { error } = await insforge.database.from("roles").upsert({ user_id: userId, rol: "editor_formaciones" })
+  } else if (c.clave === "formaciones_locomotoras") {
+    const { error } = await insforge.database.from("roles").upsert({ user_id: userId, rol: "editor_formaciones_locomotoras" })
     if (error) {
-      console.error("No se pudo asignar el rol editor_formaciones:", error.message)
+      console.error("No se pudo asignar el rol editor_formaciones_locomotoras:", error.message)
       process.exit(1)
     }
-    console.log("Rol editor_formaciones (edición solo en Formaciones) asignado a", c.email)
-  } else if (c.clave === "locomotoras") {
-    const { error } = await insforge.database.from("roles").upsert({ user_id: userId, rol: "editor_locomotoras" })
+    console.log("Rol editor_formaciones_locomotoras (edición en Formaciones y Locomotoras) asignado a", c.email)
+  } else if (c.clave === "lavado") {
+    const { error } = await insforge.database.from("roles").upsert({ user_id: userId, rol: "editor_lavado" })
     if (error) {
-      console.error("No se pudo asignar el rol editor_locomotoras:", error.message)
+      console.error("No se pudo asignar el rol editor_lavado:", error.message)
       process.exit(1)
     }
-    console.log("Rol editor_locomotoras (edición solo en Locomotoras) asignado a", c.email)
+    console.log("Rol editor_lavado (edición solo en Lavado) asignado a", c.email)
   } else {
     const { error } = await insforge.database
       .from("roles")
